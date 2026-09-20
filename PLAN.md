@@ -129,13 +129,23 @@ value of `inferido` is not allowed to reach a rendered ad.
 ## 3. Phases
 
 ### Phase 0 — Prerequisites (Bryan)
-1. Connect the **Google Calendar connector** in the desktop app — calendar access
-   does not travel with the repo.
-2. `ELEVENLABS_API_KEY` in shell profile or a gitignored `.env`.
-3. Church logo into `brand/` (SVG preferred, else high-res PNG).
-4. Brand colors + fonts — or an existing flyer / Instagram post to extract from.
-5. Choose an ElevenLabs Spanish voice ID (Latin-American voice, `eleven_multilingual_v2`).
-6. Optional: a royalty-free music bed as a local file.
+1. **Confirm ElevenLabs commercial rights under pay-as-you-go.** Unresolved. The
+   free plan has no commercial licence and requires "elevenlabs.io" in the title
+   of published content; whether buying PAYG credits lifts that is not documented
+   clearly. Ask support verbatim: *"If I'm on the Free plan and purchase
+   pay-as-you-go credits, do I have a commercial licence, and must I still
+   include 'elevenlabs.io' in the title of published content?"* If the answer is
+   no, fall back to Starter at $6/month — the attribution clause alone rules out
+   the free tier for a church video.
+2. **Calendar auth that survives a headless VM.** The connector is interactive
+   OAuth and does not travel with the repo. Decide between signing the CLI in on
+   the VM, or a Google service account / stored refresh token. The latter is what
+   an unattended run needs.
+3. `ELEVENLABS_API_KEY` in the VM's shell profile or a gitignored `.env`.
+4. Church logo into `brand/` (SVG preferred, else high-res PNG).
+5. Brand colors + fonts — or an existing flyer / Instagram post to extract from.
+6. Choose an ElevenLabs Spanish voice ID (Latin-American, `eleven_multilingual_v2`)
+   and pin it in the repo. The MCP connector is a good way to audition candidates.
 
 ### Phase 1 — Scaffold + brand system
 Remotion project at 16:9 1920x1080 30fps. `tokens.ts` as the single source of
@@ -194,7 +204,9 @@ Full end-to-end on a real week; `README.md` for the church team.
 | Deliverables | Per event: image, audio, clip. Plus one combined weekly video. |
 | Missing location | Default to the temple. Infer "Zoom"/"virtual" from the event card. No address or phone needed. |
 | Missing schedule | Recurring events from `church-info.md`; special events from the event card; otherwise stop and ask. |
-| Runtime | Desktop app. ElevenLabs and Remotion's Chromium are both reachable there without policy changes. |
+| Harness | Claude Code CLI, so the pipeline can run over SSH on a Linux VM rather than only at a desk. |
+| TTS access | ElevenLabs REST API via `scripts/tts.mjs`. Not the MCP connector: the pipeline must re-render a past week identically, and voice, model and stability belong in version control. The MCP server is still useful in Phase 0 for auditioning voices. |
+| TTS billing | Pay-as-you-go, `eleven_multilingual_v2` at $0.10 per 1,000 characters. About $0.52/month at ~5,200 characters — cheaper per character than Starter's effective $0.20/1,000, and no subscription. Flash/Turbo halves the cost but loses quality on Spanish narration; not worth $0.25/month. |
 | Register | `tú`. Warm and direct, never formal `usted`. Applies to every script and every on-screen line. |
 | Standard CTA | **"Te esperamos"**. Closes each ad unless an event has a genuinely different call. |
 | Intro card | Yes. The weekly video opens with a dated card, e.g. "Semana del 21 al 27 de septiembre" — Spanish month names, lowercase. |
@@ -214,9 +226,30 @@ colors and fonts, and an ElevenLabs Spanish voice ID.
 
 Built and verified against Node v22.22.2.
 
-**Desktop (target).** Nothing special; Remotion downloads its own Chromium.
+**Linux VM via Claude Code CLI (target).** Headless, reachable over SSH so a week
+can be generated from anywhere. Three things bite on a bare VM:
 
-**Claude Code on the web (fallback).** Two hosts are blocked by the egress proxy:
+- **Chromium system libraries.** Remotion downloads its own Chrome Headless Shell,
+  but not the shared libraries it links against. Install them up front
+  (`libnss3`, `libatk1.0-0`, `libatk-bridge2.0-0`, `libcups2`, `libdrm2`,
+  `libxkbcommon0`, `libxcomposite1`, `libxdamage1`, `libxfixes3`, `libxrandr2`,
+  `libgbm1`, `libasound2`) or the first render fails with an opaque launch error.
+- **Fonts.** A minimal VM ships almost none. Vendoring brand fonts into
+  `brand/fonts/` (already planned) covers the ads; also install `fontconfig` so
+  Chromium can resolve fallbacks.
+- **Cores.** Rendering scales with core count — measured ~10x realtime on 4 cores
+  at 1080p. Size the VM accordingly; this is the slowest stage by far.
+
+`npx remotion studio --port 3000` still works over an SSH tunnel when a design
+needs a visual check.
+
+**Note on unattended runs.** The § 2 gate is deliberately blocking: an event with
+no known time halts the pipeline. That is incompatible with a fully unattended
+cron job unless `church-info.md` covers every recurring event. Treat the VM as
+"run it from my phone over SSH", not "it runs itself" — at least until the
+knowledge base proves complete over a few weeks.
+
+**Claude Code on the web (where this was scoped).** Two hosts are blocked by the egress proxy:
 - `api.elevenlabs.io` — no TTS unless added to the environment's network allowlist
 - `remotion.media` — Remotion cannot fetch its Chromium
 

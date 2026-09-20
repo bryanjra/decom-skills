@@ -36,10 +36,15 @@ node ../scripts/tts.mjs <slug>           # generate one voiceover
 
 ## Environment
 
+Harness is the Claude Code CLI; the deployment target is a headless Linux VM
+reached over SSH. See `PLAN.md` § 6 for the VM's Chromium and font prerequisites.
+
 - Node 22+ (verified on v22.22.2)
-- `ELEVENLABS_API_KEY` required for voiceovers
-- Google Calendar connector must be enabled in the client; calendar access does
-  not travel with the repo
+- `ELEVENLABS_API_KEY` required for voiceovers. TTS goes through
+  `scripts/tts.mjs` against the REST API — not the MCP connector — so that a past
+  week re-renders identically and voice settings stay in version control.
+- Google Calendar access does not travel with the repo and must be authorized on
+  whatever machine runs the pipeline
 - `REMOTION_BROWSER_EXECUTABLE` — optional. Set it to an existing Chromium when
   Remotion cannot download its own (see `PLAN.md` § Environment). Render scripts
   fall back to Remotion's default when unset.
