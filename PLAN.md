@@ -139,10 +139,6 @@ plan.
 3. An ElevenLabs Spanish voice ID (Latin-American, `eleven_multilingual_v2`),
    pinned in the repo. The MCP connector is a good way to audition candidates.
 
-Still unconfirmed, and it gates publishing rather than building: whether
-pay-as-you-go lifts the free tier's "elevenlabs.io in the title" attribution
-requirement. If it does not, Starter at $6/month is the fallback.
-
 ### Phase 1 — Scaffold + brand system
 Remotion project at 16:9 1920x1080 30fps. `tokens.ts` as the single source of
 truth for the visual language. Fonts vendored locally so renders are
@@ -203,6 +199,7 @@ Full end-to-end on a real week; `README.md` for the church team.
 | Harness | Claude Code CLI, so the pipeline can run over SSH on a Linux VM rather than only at a desk. |
 | TTS access | ElevenLabs REST API via `scripts/tts.mjs`. Not the MCP connector: the pipeline must re-render a past week identically, and voice, model and stability belong in version control. The MCP server is still useful in Phase 0 for auditioning voices. |
 | TTS billing | Pay-as-you-go, `eleven_multilingual_v2` at $0.10 per 1,000 characters. About $0.52/month at ~5,200 characters — cheaper per character than Starter's effective $0.20/1,000, and no subscription. Flash/Turbo halves the cost but loses quality on Spanish narration; not worth $0.25/month. |
+| TTS licensing | Cleared. Confirmed directly with ElevenLabs that API use is good to go for this project; no attribution constraint blocks publishing. |
 | Register | `tú`. Warm and direct, never formal `usted`. Applies to every script and every on-screen line. |
 | Standard CTA | **"Te esperamos"**. Closes each ad unless an event has a genuinely different call. |
 | Intro card | Yes. The weekly video opens with a dated card, e.g. "Semana del 21 al 27 de septiembre" — Spanish month names, lowercase. |
