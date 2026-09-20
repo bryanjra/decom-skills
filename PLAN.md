@@ -195,13 +195,18 @@ Full end-to-end on a real week; `README.md` for the church team.
 | Missing location | Default to the temple. Infer "Zoom"/"virtual" from the event card. No address or phone needed. |
 | Missing schedule | Recurring events from `church-info.md`; special events from the event card; otherwise stop and ask. |
 | Runtime | Desktop app. ElevenLabs and Remotion's Chromium are both reachable there without policy changes. |
+| Register | `tú`. Warm and direct, never formal `usted`. Applies to every script and every on-screen line. |
+| Standard CTA | **"Te esperamos"**. Closes each ad unless an event has a genuinely different call. |
+| Intro card | Yes. The weekly video opens with a dated card, e.g. "Semana del 21 al 27 de septiembre" — Spanish month names, lowercase. |
+| Music bed | None for now. `WeeklyReel` still wires the audio slot so adding a track later is a config change, not a rewrite. |
 
-## 5. Open questions
+## 5. Deferred
 
-- Register for the scripts: `tú` or `usted`?
-- Standard CTA wording — "Te esperamos", "Ven y adora con nosotros", something else?
-- Should the weekly video open with a dated intro card ("Semana del 21 al 27 de septiembre")?
-- Music: supply a file, or ship without a bed for now?
+- **Music bed.** Shipping without one. The slot exists in `WeeklyReel`, so this
+  stays a one-file change whenever a royalty-free track is chosen.
+
+Still needed to start Phase 1, tracked in § 3 Phase 0: the logo, the brand
+colors and fonts, and an ElevenLabs Spanish voice ID.
 
 ---
 

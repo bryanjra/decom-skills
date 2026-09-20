@@ -14,8 +14,9 @@ verified feasibility findings.
    still unknown, stop and ask. A wrong time in a church ad sends real people to
    a locked door. `events.json` carries a `horaFuente` field for exactly this —
    audit it before rendering.
-2. **All audience-facing output is in Spanish** (Colombia). Code, comments and
-   these docs are in English.
+2. **All audience-facing output is in Spanish** (Colombia), addressing the
+   reader as `tú` — never `usted`. The standard closing call to action is
+   "Te esperamos". Code, comments and these docs are in English.
 3. **All video is 16:9, 1920x1080, 30fps.** Templates must re-layout rather than
    hardcode, so 9:16 remains possible later.
 4. **Subagents never render.** They write components, scripts and audio. The
