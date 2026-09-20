@@ -128,24 +128,20 @@ value of `inferido` is not allowed to reach a rendered ad.
 
 ## 3. Phases
 
-### Phase 0 — Prerequisites (Bryan)
-1. **Confirm ElevenLabs commercial rights under pay-as-you-go.** Unresolved. The
-   free plan has no commercial licence and requires "elevenlabs.io" in the title
-   of published content; whether buying PAYG credits lifts that is not documented
-   clearly. Ask support verbatim: *"If I'm on the Free plan and purchase
-   pay-as-you-go credits, do I have a commercial licence, and must I still
-   include 'elevenlabs.io' in the title of published content?"* If the answer is
-   no, fall back to Starter at $6/month — the attribution clause alone rules out
-   the free tier for a church video.
-2. **Calendar auth that survives a headless VM.** The connector is interactive
-   OAuth and does not travel with the repo. Decide between signing the CLI in on
-   the VM, or a Google service account / stored refresh token. The latter is what
-   an unattended run needs.
-3. `ELEVENLABS_API_KEY` in the VM's shell profile or a gitignored `.env`.
-4. Church logo into `brand/` (SVG preferred, else high-res PNG).
-5. Brand colors + fonts — or an existing flyer / Instagram post to extract from.
-6. Choose an ElevenLabs Spanish voice ID (Latin-American, `eleven_multilingual_v2`)
-   and pin it in the repo. The MCP connector is a good way to audition candidates.
+### Phase 0 — Inputs needed (Bryan)
+
+Environment is assumed working: Claude Code CLI with Google Calendar access and
+`ELEVENLABS_API_KEY` already configured. Machine setup is out of scope for this
+plan.
+
+1. Church logo into `brand/` (SVG preferred, else high-res PNG).
+2. Brand colors + fonts — or an existing flyer / Instagram post to extract from.
+3. An ElevenLabs Spanish voice ID (Latin-American, `eleven_multilingual_v2`),
+   pinned in the repo. The MCP connector is a good way to audition candidates.
+
+Still unconfirmed, and it gates publishing rather than building: whether
+pay-as-you-go lifts the free tier's "elevenlabs.io in the title" attribution
+requirement. If it does not, Starter at $6/month is the fallback.
 
 ### Phase 1 — Scaffold + brand system
 Remotion project at 16:9 1920x1080 30fps. `tokens.ts` as the single source of
@@ -224,44 +220,22 @@ colors and fonts, and an ElevenLabs Spanish voice ID.
 
 ## 6. Environment
 
-Built and verified against Node v22.22.2.
+Assumed configured; setup is out of scope. Built and verified against Node
+v22.22.2.
 
-**Linux VM via Claude Code CLI (target).** Headless, reachable over SSH so a week
-can be generated from anywhere. Three things bite on a bare VM:
+Two things the code must honor regardless of machine:
 
-- **Chromium system libraries.** Remotion downloads its own Chrome Headless Shell,
-  but not the shared libraries it links against. Install them up front
-  (`libnss3`, `libatk1.0-0`, `libatk-bridge2.0-0`, `libcups2`, `libdrm2`,
-  `libxkbcommon0`, `libxcomposite1`, `libxdamage1`, `libxfixes3`, `libxrandr2`,
-  `libgbm1`, `libasound2`) or the first render fails with an opaque launch error.
-- **Fonts.** A minimal VM ships almost none. Vendoring brand fonts into
-  `brand/fonts/` (already planned) covers the ads; also install `fontconfig` so
-  Chromium can resolve fallbacks.
-- **Cores.** Rendering scales with core count — measured ~10x realtime on 4 cores
-  at 1080p. Size the VM accordingly; this is the slowest stage by far.
+- **`REMOTION_BROWSER_EXECUTABLE`.** Render scripts use it when set and fall back
+  to Remotion's own Chromium otherwise, so the repo runs unchanged where Remotion
+  cannot download its browser.
+- **Degrade rather than fail on TTS.** When ElevenLabs is unreachable, still
+  produce images, scripts and a silent video, and report which events lack audio.
 
-`npx remotion studio --port 3000` still works over an SSH tunnel when a design
-needs a visual check.
+**Planning fact.** Rendering is the bottleneck and scales with core count:
+measured ~10x realtime at 1080p on 4 cores. A six-event week, counting the
+per-event clips, is a 20-25 minute job there.
 
-**Note on unattended runs.** The § 2 gate is deliberately blocking: an event with
-no known time halts the pipeline. That is incompatible with a fully unattended
-cron job unless `church-info.md` covers every recurring event. Treat the VM as
-"run it from my phone over SSH", not "it runs itself" — at least until the
-knowledge base proves complete over a few weeks.
-
-**Claude Code on the web (where this was scoped).** Two hosts are blocked by the egress proxy:
-- `api.elevenlabs.io` — no TTS unless added to the environment's network allowlist
-- `remotion.media` — Remotion cannot fetch its Chromium
-
-The second is already solved: point Remotion at a pre-installed Chromium.
-
-```bash
-export REMOTION_BROWSER_EXECUTABLE=/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell
-npx remotion render Ad out/ad.mp4 --browser-executable="$REMOTION_BROWSER_EXECUTABLE"
-```
-
-Render scripts read `REMOTION_BROWSER_EXECUTABLE` when set and fall back to
-Remotion's default otherwise, so the same repo runs in both places.
-
-When TTS is unreachable, the pipeline still produces images, scripts and a silent
-video, and reports which events are missing audio rather than failing the run.
+**The gate is deliberately blocking.** An event with no known time halts the
+pipeline and asks. That is correct for church ads but rules out an unattended
+cron job until `church-info.md` covers every recurring event — worth revisiting
+once the knowledge base has proven complete over a few weeks.
