@@ -74,6 +74,20 @@ test('an in-person event with no place is a notice', () => {
   assert.equal(r.avisos[0].regla, 'sin-lugar');
 });
 
+test('a place missing from the sources says where it looked', () => {
+  const r = auditEvents(doc(ev({ lugar: null, lugarFuente: null })));
+  assert.match(r.avisos[0].mensaje, /church-info\.md/);
+});
+
+test('a place dropped on purpose is reported with its reason, not as missing from the sources', () => {
+  const r = auditEvents(doc(ev({ lugar: null, lugarFuente: null, lugarNota: 'the person asked for it to be announced without a place' })));
+  assert.deepEqual(r.errores, []);
+  assert.equal(r.avisos.length, 1);
+  assert.equal(r.avisos[0].regla, 'sin-lugar');
+  assert.match(r.avisos[0].mensaje, /asked/);
+  assert.doesNotMatch(r.avisos[0].mensaje, /church-info/);
+});
+
 test('a virtual event on a non-virtual template is a notice', () => {
   const r = auditEvents(doc(ev({ modalidad: 'virtual', lugar: 'Virtual', plantilla: 'estandar' })));
   assert.deepEqual(r.errores, []);

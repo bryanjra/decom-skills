@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { normalizeWeek } from '../core/normalize.mjs';
+import { auditEvents } from '../core/audit.mjs';
 import { parseChurchInfo } from '../core/church-info.mjs';
 
 const fixture = (name) =>
@@ -309,6 +310,101 @@ test('an override with a malformed time is a problem and does not set the time',
   });
   assert.equal(doc.events[0].hora, null);
   assert.match(problemas[0], /7pm/);
+});
+
+test('an override with hora null drops a time inherited from a service', () => {
+  const { doc, problemas } = run([allDay('Culto de jóvenes', '2026-09-26', '2026-09-27')], {
+    overrides: { 'culto-de-jovenes': { hora: null } },
+  }); // sábado: without the override it inherits 18:45
+  const e = doc.events[0];
+  assert.deepEqual(problemas, []);
+  assert.equal(e.hora, null);
+  assert.equal(e.horaFuente, null);
+  assert.equal(e.horaTexto, null);
+  assert.equal(e.horaHablada, null);
+  assert.match(e.horaNota, /asked/);
+});
+
+test('an override with hora null drops a time written in the title', () => {
+  const e = only([allDay('2pm Ecos del Futuro Jovenes Distrito 9', '2026-09-27', '2026-09-28')], {
+    overrides: { 'ecos-del-futuro-jovenes-distrito-9': { hora: null } },
+  });
+  assert.equal(e.titulo, 'Ecos del Futuro Jovenes Distrito 9');
+  assert.equal(e.hora, null);
+  assert.equal(e.horaFuente, null);
+});
+
+test('an override with hora null drops a time from the calendar card', () => {
+  const e = only([timed('Integración maestros', '2026-09-26T19:00:00-05:00', '2026-09-26T20:00:00-05:00')], {
+    overrides: { 'integracion-maestros': { hora: null } },
+  });
+  assert.equal(e.hora, null);
+  assert.equal(e.horaFuente, null);
+  assert.equal(e.horaTexto, null);
+});
+
+test('an override with lugar null drops the default place', () => {
+  const e = only([allDay('Charla familias', '2026-09-25', '2026-09-26')], {
+    overrides: { 'charla-familias': { lugar: null } },
+  }); // without the override the place is church-info.md's default
+  assert.equal(e.lugar, null);
+  assert.equal(e.lugarFuente, null);
+});
+
+test('a place dropped by lugar null says why in the record; a place that was never there says nothing', () => {
+  const dropped = only([allDay('Charla familias', '2026-09-25', '2026-09-26')], {
+    overrides: { 'charla-familias': { lugar: null } },
+  });
+  assert.match(dropped.lugarNota, /asked/);
+
+  const sinDefecto = parseChurchInfo('# Servicios recurrentes\n    Martes: 7:00 PM');
+  const never = only([allDay('Charla familias', '2026-09-25', '2026-09-26')], { churchInfo: sinDefecto });
+  assert.equal(never.lugar, null);
+  assert.equal(never.lugarNota, undefined);
+});
+
+test('an empty or malformed value is not the same as null: the event keeps what the sources gave it', () => {
+  const { doc, problemas } = run([allDay('Culto de jóvenes', '2026-09-26', '2026-09-27')], {
+    overrides: { 'culto-de-jovenes': { hora: '', lugar: '' } },
+  });
+  assert.equal(doc.events[0].hora, '18:45');
+  assert.equal(doc.events[0].horaFuente, 'church-info.md');
+  assert.equal(doc.events[0].lugar, 'Salón Principal');
+  assert.equal(problemas.length, 1);
+  assert.match(problemas[0], /hora/);
+
+  const numero = run([allDay('Culto de jóvenes', '2026-09-26', '2026-09-27')], {
+    overrides: { 'culto-de-jovenes': { hora: 1900 } },
+  });
+  assert.equal(numero.doc.events[0].hora, '18:45');
+  assert.match(numero.problemas[0], /1900/);
+});
+
+test('overrides without hora or lugar leave the time and place alone', () => {
+  const e = only([allDay('Culto de jóvenes', '2026-09-26', '2026-09-27')], {
+    overrides: { 'culto-de-jovenes': { plantilla: 'estandar' } },
+  });
+  assert.equal(e.hora, '18:45');
+  assert.equal(e.horaFuente, 'church-info.md');
+  assert.equal(e.lugar, 'Salón Principal');
+  assert.equal(e.lugarFuente, 'church-info.md');
+});
+
+test('a week built with null overrides passes the audit, with notices that say why', () => {
+  const { doc, problemas } = run(
+    [allDay('Ayuno', '2026-09-26', '2026-09-27'), allDay('2pm Ecos del Futuro', '2026-09-27', '2026-09-28')],
+    { overrides: { ayuno: { hora: null, lugar: null }, 'ecos-del-futuro': { hora: null } } },
+  );
+  assert.deepEqual(problemas, []);
+  const { errores, avisos } = auditEvents(doc);
+  assert.deepEqual(errores, []);
+  const sinHora = avisos.filter((a) => a.regla === 'sin-hora');
+  assert.deepEqual(sinHora.map((a) => a.slug).sort(), ['ayuno', 'ecos-del-futuro']);
+  for (const a of sinHora) {
+    assert.match(a.mensaje, /asked/);
+    assert.doesNotMatch(a.mensaje, /unknown/);
+  }
+  assert.deepEqual(avisos.filter((a) => a.regla === 'sin-lugar').map((a) => a.slug), ['ayuno']);
 });
 
 test('unreadable lines in church-info.md surface as problems', () => {

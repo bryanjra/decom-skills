@@ -46,7 +46,7 @@ export function auditEvents(doc) {
     }
 
     if (e.modalidad !== 'virtual' && !e.lugar) {
-      aviso('sin-lugar', e, `"${e.titulo}" has no place: neither the card nor church-info.md gives one`);
+      aviso('sin-lugar', e, `"${e.titulo}" has no place: ${e.lugarNota ?? 'neither the card nor church-info.md gives one'}`);
     }
   }
   return { errores, avisos };

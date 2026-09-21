@@ -117,7 +117,12 @@ function aplicarOverrides(eventos, overrides, problemas, descartados) {
       descartados.push({ titulo: e.titulo, motivo: 'omitted by override' });
       continue;
     }
-    if (o.hora !== undefined) {
+    // null is a decision, not a gap: announce the event without the time (or place) the sources gave it.
+    if (o.hora === null) {
+      e.hora = null;
+      e.horaFuente = null;
+      e.horaNota = 'the person asked for it to be announced without a time';
+    } else if (o.hora !== undefined) {
       if (isHora(o.hora)) {
         e.hora = o.hora;
         e.horaFuente = 'usuario';
@@ -126,7 +131,8 @@ function aplicarOverrides(eventos, overrides, problemas, descartados) {
         problemas.push(`override "${slug}": hora "${o.hora}" is not HH:MM (24h), ignored`);
       }
     }
-    if (o.lugar) [e.lugar, e.lugarFuente] = [o.lugar, 'usuario'];
+    if (o.lugar === null) [e.lugar, e.lugarFuente, e.lugarNota] = [null, null, 'the person asked for it to be announced without a place'];
+    else if (o.lugar) [e.lugar, e.lugarFuente] = [o.lugar, 'usuario'];
     if (o.modalidad) e.modalidad = o.modalidad;
     if (o.plantilla) {
       if (PLANTILLAS.includes(o.plantilla)) e.plantilla = o.plantilla;
@@ -160,6 +166,7 @@ function registroFinal(e) {
     modalidad: e.modalidad,
     plantilla: e.plantilla,
   });
+  if (!e.lugar && e.lugarNota) r.lugarNota = e.lugarNota;
   return r;
 }
 

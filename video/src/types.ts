@@ -19,6 +19,7 @@ export type EventRecord = {
   horaNota?: string;
   lugar: string | null;
   lugarFuente: string | null;
+  lugarNota?: string;
   modalidad: 'presencial' | 'virtual';
   plantilla: Plantilla;
 };
