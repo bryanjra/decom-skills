@@ -12,5 +12,6 @@
     Sabados: 6:45 PM - 8: 00 PM
     Domingos (1er servicio - Culto evangelistico): 9:00 AM - 10:00 AM
     Domingos (2do servicio - Escuela dominical): 10:30 AM - 12:00 PM
+    Sabados (Ayuno): 7:00 AM - 12:00 PM
 
 
