@@ -2,7 +2,7 @@ import React from 'react';
 import {AbsoluteFill, interpolate} from 'remotion';
 import {brand} from '../brand/tokens';
 import {useLayout} from '../layout';
-import {Backdrop, Cta, EventInfo, Headline, MinistryTag, Reveal, Wordmark, useEnter, type TemplateProps} from './parts';
+import {Backdrop, Cta, EventInfo, Headline, MinistryTag, Reveal, Logo, useEnter, type TemplateProps} from './parts';
 
 /** Centered, larger layout for the week's featured events: hero headline and a slow push-in. */
 export const Destacado: React.FC<TemplateProps> = ({event, iglesia, headline}) => {
@@ -25,7 +25,7 @@ export const Destacado: React.FC<TemplateProps> = ({event, iglesia, headline}) =
         }}
       >
         <Reveal>
-          <Wordmark iglesia={iglesia} align="center" />
+          <Logo />
         </Reveal>
         {event.ministerio ? (
           <Reveal delay={4}>

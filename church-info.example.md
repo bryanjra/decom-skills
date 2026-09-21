@@ -19,7 +19,8 @@ Recurring services must sit under a heading that contains "Servicios" or
     Despedida: Dios te bendiga
 
 <!--
-  Nombre               Church name, shown on the intro/outro and in the logo slot.
+  Nombre               Church name, said once in the voiceover. On screen the logo
+                       carries the name, so it is never drawn as text.
   Direccion            Address, available to the outro card.
   Lugar por defecto    Where events happen when the calendar card names no place.
                        Without it, an event with no place on its card has none.

@@ -266,12 +266,12 @@ Full end-to-end on a real week; `README.md` for the church team. *The Spanish
 
 Brand, tracked in § 3 Phase 0: colors and logo are set from the identity manual
 (2026-09-21, the manual's stated hex values; see `brand/corporate-brand.md`). Still
-open: the fonts (Myriad Pro is not vendored, so the Montserrat files are placeholders)
-and `Wordmark`, which at 96 px shows the real logo too small to read and no longer
-shows the church name. The ElevenLabs voice
-ID is in `.env`. `church-info.md` carries Nombre, Lugar por defecto, Ministerios and
-Llamado a la accion (added 2026-09-21); without them the ads have no church name, no
-place and no call to action.
+open: the fonts (Myriad Pro is not vendored, so the Montserrat files are placeholders).
+The logo (`Logo`, 150 px, top-right in the left-aligned layouts) carries the church name
+on screen, so the name is not drawn as text; `Nombre` from `church-info.md` is only said
+in the voiceover. The ElevenLabs voice ID is in `.env`. `church-info.md` carries Nombre,
+Lugar por defecto, Ministerios and Llamado a la accion (added 2026-09-21); without them
+the ads have no place, no call to action and the voice skips the church name.
 
 ---
 

@@ -2,7 +2,7 @@ import React from 'react';
 import {AbsoluteFill} from 'remotion';
 import {brand} from '../brand/tokens';
 import {useLayout} from '../layout';
-import {Backdrop, Cta, EventInfo, Headline, MinistryTag, Reveal, Wordmark, type TemplateProps} from './parts';
+import {Backdrop, Cta, EventInfo, Headline, MinistryTag, Reveal, CornerLogo, type TemplateProps} from './parts';
 
 /** Left-aligned everyday layout: name at the top, event in the middle, call to action at the bottom. */
 export const Estandar: React.FC<TemplateProps> = ({event, iglesia, headline}) => {
@@ -20,9 +20,7 @@ export const Estandar: React.FC<TemplateProps> = ({event, iglesia, headline}) =>
           justifyContent: 'space-between',
         }}
       >
-        <Reveal>
-          <Wordmark iglesia={iglesia} />
-        </Reveal>
+        <CornerLogo />
         <div style={{display: 'flex', flexDirection: 'column', gap: brand.space.md * u, maxWidth: portrait ? undefined : 1300 * u}}>
           {event.ministerio ? (
             <Reveal delay={4}>

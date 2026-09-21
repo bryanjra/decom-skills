@@ -26,7 +26,7 @@ fecha) y la herramienta te avisa. No se detiene y tampoco adivina.
 
    | Campo | Para qué sirve |
    |---|---|
-   | `Nombre` | Se muestra en la tarjeta de introducción y en cada anuncio |
+   | `Nombre` | Se dice una vez en la voz de cada anuncio; en pantalla el nombre va en el logo |
    | `Direccion` | Aparece en el cierre del video |
    | `Lugar por defecto` | Dónde es un evento cuando su tarjeta no dice nada |
    | `Ministerios` | Lista separada por comas (Jóvenes, Familias...) para etiquetar el público |
@@ -143,7 +143,7 @@ guion bien revisado antes de generar la voz.
 | `[sin-hora]` ("has no time") | No se encontró hora. El anuncio sale con la fecha solamente. No es un error. |
 | "voiceover unavailable" | No se pudo generar la voz (sin conexión o un problema con la cuenta). El evento sale **sin audio** y se lista al final. |
 | Un `ERROR` al validar | Un guion o un diseño dice algo que el evento no respalda. Se corrige y se vuelve a validar; hasta entonces no se genera nada. |
-| El video sale sin nombre de la iglesia o sin la frase final | Faltan esas líneas en `church-info.md`. |
+| La voz no dice el nombre de la iglesia, o el video sale sin la frase final | Faltan esas líneas en `church-info.md`. |
 
 ## Cambiar solo un evento
 

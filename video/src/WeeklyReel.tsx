@@ -40,7 +40,7 @@ export const WeeklyReel: React.FC<WeeklyReelProps> = ({semanaTexto, iglesia, ite
     <AbsoluteFill>
       <TransitionSeries>
         <TransitionSeries.Sequence durationInFrames={introFrames}>
-          <IntroCard semanaTexto={semanaTexto} iglesia={iglesia} />
+          <IntroCard semanaTexto={semanaTexto} />
         </TransitionSeries.Sequence>
         {items.flatMap((item, i) => [
           <TransitionSeries.Transition key={`t-${item.slug}`} presentation={presentationFor(i)} timing={timing} />,

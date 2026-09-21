@@ -2,11 +2,11 @@ import React from 'react';
 import {AbsoluteFill} from 'remotion';
 import {brand} from './brand/tokens';
 import {useLayout} from './layout';
-import {Backdrop, Cta, Headline, Reveal, Wordmark} from './templates/parts';
+import {Backdrop, Cta, Headline, Reveal, Logo} from './templates/parts';
 import type {Iglesia} from './types';
 
 /** Opens the weekly video with the dated card, e.g. "Semana del 21 al 27 de septiembre". */
-export const IntroCard: React.FC<{semanaTexto: string; iglesia: Iglesia}> = ({semanaTexto, iglesia}) => {
+export const IntroCard: React.FC<{semanaTexto: string}> = ({semanaTexto}) => {
   const {u} = useLayout();
   return (
     <AbsoluteFill style={{fontFamily: brand.font.body, color: brand.color.text}}>
@@ -24,7 +24,7 @@ export const IntroCard: React.FC<{semanaTexto: string; iglesia: Iglesia}> = ({se
         }}
       >
         <Reveal>
-          <Wordmark iglesia={iglesia} align="center" />
+          <Logo />
         </Reveal>
         <Reveal delay={8}>
           <Headline text={semanaTexto} size={brand.type.hero} align="center" />
@@ -54,7 +54,7 @@ export const OutroCard: React.FC<{iglesia: Iglesia}> = ({iglesia}) => {
         }}
       >
         <Reveal>
-          <Wordmark iglesia={iglesia} align="center" />
+          <Logo />
         </Reveal>
         <Reveal delay={8}>
           <Cta text={iglesia.llamadoAccion} align="center" />

@@ -44,6 +44,12 @@ export const fontFiles = [
  */
 export const logo: string | null = 'brand/logo/IPUC_COLOR para fondo oscuro.png';
 
+/**
+ * Logo height at the 1080 base, scaled by the layout unit. The logo is the only place the
+ * church name appears on screen, so it has to be large enough for the ring lettering to read.
+ */
+export const logoHeight = 150;
+
 /** Sizes in px at the 1080-short-side base. Templates scale them by the layout unit. */
 export const space = {xs: 8, sm: 16, md: 32, lg: 64, xl: 96, xxl: 144} as const;
 export const type = {hero: 168, title: 132, headline: 88, subtitle: 56, body: 44, caption: 32} as const;
@@ -77,4 +83,4 @@ export function alpha(hex: string, opacity: number): string {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${opacity})`;
 }
 
-export const brand = {video, color, font, fontFiles, logo, space, type, motion, audio} as const;
+export const brand = {video, color, font, fontFiles, logo, logoHeight, space, type, motion, audio} as const;

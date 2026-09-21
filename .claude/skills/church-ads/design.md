@@ -30,7 +30,7 @@ delivery, it does not just look wrong.
   override changes the layout without anyone rewriting the ad. `destacado` is only
   ever chosen by an override; a designer does not pick it.
 - Custom composition is allowed, built from `video/src/templates/parts.tsx`
-  (`Backdrop`, `Wordmark`, `MinistryTag`, `Headline`, `EventInfo`, `Cta`, `Reveal`)
+  (`Backdrop`, `Logo`, `CornerLogo`, `MinistryTag`, `Headline`, `EventInfo`, `Cta`, `Reveal`)
   as long as every rule below still holds.
 - A `headline` prop on a template may replace the title, but only with text built
   from `event.titulo` / `event.ministerio`. No tagline that `events.json` does not
@@ -51,13 +51,14 @@ delivery, it does not just look wrong.
 Every fact on screen comes from `event` or `iglesia`, and nothing else exists.
 
 - Date: `event.fechaTexto`. Time: `event.horaTexto`. Place: `event.lugar`. Title:
-  `event.titulo`. Audience tag: `event.ministerio`. Church: `iglesia.nombre`.
-  Call to action: `iglesia.llamadoAccion`.
+  `event.titulo`. Audience tag: `event.ministerio`. Call to action:
+  `iglesia.llamadoAccion`. The church name is on screen only inside the logo: never
+  type it or render `iglesia.nombre` as text.
 - Never type a date, weekday, month, clock time or place into the file, even
   "just for the layout". Use the sample data in `video/src/sample.ts` to preview.
 - No time (`hora` is `null`): the time row is simply absent. Do not write "hora por
-  confirmar", "próximamente" or a placeholder. Same for a `null` place, church name
-  or call to action: `EventInfo`, `Wordmark` and `Cta` already render nothing.
+  confirmar", "próximamente" or a placeholder. Same for a `null` place or call
+  to action: `EventInfo` and `Cta` already render nothing.
 - On-screen text is Spanish (Colombia), addressing the reader as `tú`.
 
 ## Brand
@@ -69,8 +70,9 @@ Every fact on screen comes from `event` or `iglesia`, and nothing else exists.
 - Type: `brand.font.display` / `brand.font.body` and the `brand.type` scale. Fonts
   are vendored under `brand/fonts/` and registered once by `brand/fonts.ts`; do not
   import web fonts.
-- Spacing: `brand.space.*`. The logo is drawn by `Wordmark`, which falls back to the
-  church name when `brand.logo` is null.
+- Spacing: `brand.space.*`. The logo is drawn by `Logo` (`CornerLogo` in the left-aligned
+  layouts), which renders nothing while `brand.logo` is null. Keep it on a flat
+  field: no shapes behind it, nothing over it.
 - Colors and logo are the IPUC's official identity; `brand/corporate-brand.md` holds
   the logo, naming and layout rules (flat background under the logo, nothing over it,
   full name never replaced by "IPUC"). The fonts are still placeholders. Design

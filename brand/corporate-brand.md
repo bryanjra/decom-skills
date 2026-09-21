@@ -198,11 +198,12 @@ Open:
    Myriad Pro and Calibri are both proprietary, so neither is in the repo. An
    open-licensed Myriad-style face (for example Source Sans 3, *not* in the manual) is
    an option if a lookalike is acceptable.
-2. **`Wordmark` does not fit the real logo.** It draws the logo 96 px tall, too small
-   for the ring lettering and verse to read, and it replaces the church-name text, so
-   the congregation name no longer appears on screen (the manual calls for name plus
-   sede beside the logo, § 4).
-3. **Shapes under the logo.** In the centered layouts (`Destacado`, the intro and
-   outro cards) the edge of the drifting background circle crosses the logo, which
-   breaks the flat-background rule in § 3.
-4. **SVG.** PLAN.md asked for `brand/logo.svg`; only PNG exists.
+2. **SVG.** PLAN.md asked for `brand/logo.svg`; only PNG exists.
+3. **No sede on screen.** The manual calls for name plus sede beside the logo (§ 4). The
+   project decision is that the logo carries the name and nothing on screen is read from
+   `church-info.md`, so the congregation ("Envigado Central") is not shown as text.
+
+Also done: `Logo` draws it 150 px tall (`logoHeight`), top-right in the left-aligned
+layouts (as on the manual's slide, p.56) and at the top of the stack in the centered
+ones; `Backdrop` keeps its shapes low so nothing sits behind it. `iglesia.nombre` is no
+longer drawn on screen; the voiceover still says it once.

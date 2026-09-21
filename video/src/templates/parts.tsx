@@ -28,7 +28,11 @@ export const Reveal: React.FC<{delay?: number; children: React.ReactNode}> = ({d
   return <div style={{opacity: p, transform: `translateY(${(1 - p) * 40 * u}px)`}}>{children}</div>;
 };
 
-/** Solid background with two soft shapes that drift slowly over the whole scene. */
+/**
+ * Solid background with two soft shapes that drift slowly over the whole scene. Both hang off
+ * the bottom edge, low enough to stay clear of the logo's zone across the top: the manual wants
+ * the logo on a flat field, so nothing may be drawn behind it.
+ */
 export const Backdrop: React.FC<{zoom?: boolean}> = ({zoom = false}) => {
   const frame = useCurrentFrame();
   const {durationInFrames, u} = useLayout();
@@ -43,7 +47,7 @@ export const Backdrop: React.FC<{zoom?: boolean}> = ({zoom = false}) => {
           height: 1400 * u,
           borderRadius: '50%',
           right: -420 * u + t * 60 * u,
-          top: -520 * u,
+          bottom: -700 * u,
           backgroundColor: alpha(brand.color.primary, 0.35),
           transform: `scale(${scale})`,
         }}
@@ -64,24 +68,40 @@ export const Backdrop: React.FC<{zoom?: boolean}> = ({zoom = false}) => {
   );
 };
 
-/** The church logo, or its name as a wordmark until a logo file is supplied. */
-export const Wordmark: React.FC<{iglesia: Iglesia; align?: 'left' | 'center'}> = ({iglesia, align = 'left'}) => {
+/**
+ * The church logo, alone. It carries the church name, so the name is never typed on screen
+ * or read from church-info.md. Renders nothing while `brand.logo` is null. Keep everything
+ * else clear of it: no shapes behind, nothing over it (brand/corporate-brand.md § 3).
+ */
+export const Logo: React.FC = () => {
   const {u} = useLayout();
-  if (brand.logo) return <Img src={staticFile(brand.logo)} style={{height: 96 * u}} />;
-  if (!iglesia.nombre) return null;
+  if (!brand.logo) return null;
+  return <Img src={staticFile(brand.logo)} style={{display: 'block', height: brand.logoHeight * u}} />;
+};
+
+/**
+ * The logo for the left-aligned layouts. Landscape: top-right corner, where the manual puts it
+ * on screen pieces (p.56) and where it costs no height. Portrait: first row of the column.
+ */
+export const CornerLogo: React.FC = () => {
+  const {u, portrait} = useLayout();
+  if (portrait) {
+    return (
+      <Reveal>
+        <Logo />
+      </Reveal>
+    );
+  }
   return (
-    <div
-      style={{
-        fontFamily: brand.font.display,
-        fontSize: brand.type.caption * u,
-        letterSpacing: 4 * u,
-        textTransform: 'uppercase',
-        color: brand.color.textMuted,
-        textAlign: align,
-      }}
-    >
-      {iglesia.nombre}
-    </div>
+    <>
+      {/* Empty row: the column keeps its three-row spacing without the logo taking height. */}
+      <div />
+      <div style={{position: 'absolute', top: brand.space.xl * u, right: brand.space.xl * u}}>
+        <Reveal>
+          <Logo />
+        </Reveal>
+      </div>
+    </>
   );
 };
 

@@ -2,7 +2,7 @@ import React from 'react';
 import {AbsoluteFill} from 'remotion';
 import {alpha, brand} from '../brand/tokens';
 import {useLayout} from '../layout';
-import {Backdrop, Cta, EventInfo, Headline, MinistryTag, Reveal, Wordmark, type TemplateProps} from './parts';
+import {Backdrop, Cta, EventInfo, Headline, MinistryTag, Reveal, CornerLogo, type TemplateProps} from './parts';
 
 /** For online events: the event sits inside a window card, so it reads as "on your screen". */
 export const Virtual: React.FC<TemplateProps> = ({event, iglesia, headline}) => {
@@ -23,9 +23,7 @@ export const Virtual: React.FC<TemplateProps> = ({event, iglesia, headline}) => 
           justifyContent: 'space-between',
         }}
       >
-        <Reveal>
-          <Wordmark iglesia={iglesia} />
-        </Reveal>
+        <CornerLogo />
         <Reveal delay={6}>
           <div
             style={{
