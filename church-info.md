@@ -1,6 +1,6 @@
-#Contact info
+# Contact info
     Nombre: IPUC Envigado Central
-    Direccion: Dg. 30a #33a Sur-45, Las Flores, Envigado
+    Direccion: Dg. 30A # 33A Sur - 45, Las Flores, Envigado
     Lugar por defecto: Templo
     Ministerios: Jóvenes, Adolescentes, Familias, Escuela Dominical, Alabanza, Evangelismo
     Llamado a la accion: Te esperamos
