@@ -8,6 +8,11 @@ introducción, transiciones, la voz de corrido y un cierre.
 Todo sale en formato horizontal (16:9, 1920x1080), en español de Colombia y hablándole
 al público de **tú**.
 
+Es para las congregaciones de la **IPUC** (Iglesia Pentecostal Unida de Colombia). El
+logo, los colores y la tipografía son los de la organización, iguales para todas, y ya
+vienen dentro del proyecto. Lo único que cambia de una congregación a otra es su
+`church-info.md`: su nombre, su dirección y sus horarios.
+
 ## La regla que no se rompe
 
 **La herramienta nunca inventa datos de un evento.** Una hora, un lugar o un detalle
@@ -27,7 +32,7 @@ fecha) y la herramienta te avisa. No se detiene y tampoco adivina.
 
    | Campo | Para qué sirve |
    |---|---|
-   | `Nombre` | Se dice una vez, en la bienvenida de la voz de la semana; en pantalla el nombre va en el logo |
+   | `Nombre` | El nombre de tu congregación (por ejemplo, «IPUC Envigado Central»). Se dice una vez, en la bienvenida de la voz de la semana; en pantalla el nombre va en el logo, nunca escrito aparte |
    | `Direccion` | Aparece en el cierre del video |
    | `Lugar por defecto` | Dónde es un evento cuando su tarjeta no dice nada |
    | `Ministerios` | Lista separada por comas (Jóvenes, Familias...) para etiquetar el público |
@@ -45,8 +50,9 @@ fecha) y la herramienta te avisa. No se detiene y tampoco adivina.
 
    Las voces de la biblioteca de ElevenLabs solo se pueden usar por API con un plan de
    pago. El modelo y los ajustes de la voz están en `scripts/voice.json`.
-4. **El logo y los colores de la iglesia.** Ya están: el logo en `brand/logo/` y los
-   colores tomados del manual de identidad (`brand/corporate-brand.md`), registrados en
+4. **El logo y los colores de la IPUC.** No hay que hacer nada: ya están, y son los de la
+   organización, los mismos para todas las congregaciones. El logo está en `brand/logo/` y
+   los colores, tomados del manual de identidad (`brand/corporate-brand.md`), en
    `video/src/brand/tokens.ts`, el único archivo donde viven. Falta la tipografía: hoy el
    diseño usa Montserrat de muestra en lugar de Myriad Pro, que es la del manual.
 
@@ -124,6 +130,20 @@ guiones, como `charla-familias`):
 
 Después vuelve a pedirle a Claude que actualice la semana. Como la hora quedó en el
 registro, el guion y los diseños se rehacen con ella.
+
+## Dónde aparece el nombre de la iglesia
+
+- **En la voz:** una sola vez, en la bienvenida del video semanal ("Bienvenidos a ..."),
+  tal como está en `Nombre` de `church-info.md`. Las líneas de cada evento y el cierre no
+  lo mencionan, así que el clip de un solo evento no dice el nombre en voz alta.
+- **En pantalla:** solo dentro del logo. Ningún diseño escribe el nombre por su cuenta, y
+  la validación lo rechaza si alguno lo hace.
+
+## Usarlo en otra congregación de la IPUC
+
+Copia el proyecto y llena `church-info.md` con los datos de esa congregación, a partir de
+`church-info.example.md`. No hay nada que cambiar en `scripts/` ni en `video/src/`: el
+nombre y los datos de la iglesia nunca están escritos en el código.
 
 ## Antes de publicar, revisa siempre
 
