@@ -7,6 +7,8 @@ import { isHora } from './spanish.mjs';
 
 export const FUENTES_HORA = ['calendario', 'titulo', 'church-info.md', 'usuario'];
 export const PLANTILLAS = ['destacado', 'estandar', 'virtual'];
+/** Slugs that would collide with the intro and outro sections of the weekly script. */
+export const SLUGS_RESERVADOS = ['intro', 'outro'];
 
 export function auditEvents(doc) {
   const errores = [];
@@ -18,6 +20,9 @@ export function auditEvents(doc) {
   for (const e of doc.events ?? []) {
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(e.slug ?? '')) {
       error('slug-formato', e, `slug "${e.slug}" must be lowercase, accent-stripped and hyphenated`);
+    }
+    if (SLUGS_RESERVADOS.includes(e.slug)) {
+      error('slug-reservado', e, `slug "${e.slug}" is reserved for a section of the weekly script`);
     }
     if (vistos.has(e.slug)) error('slug-duplicado', e, `slug "${e.slug}" appears more than once`);
     vistos.add(e.slug);

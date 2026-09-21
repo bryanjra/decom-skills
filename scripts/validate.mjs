@@ -1,24 +1,27 @@
 #!/usr/bin/env node
-// Checks each event's delivery against events.json, the step that catches a
-// script or component stating something the record does not support.
+// Checks a week's deliveries against events.json, the step that catches a script or
+// component stating something the record does not support.
 //
-//   node scripts/validate.mjs <week> [slug ...]
+//   node scripts/validate.mjs <week> [slug ...] [--narracion]
 //
-// Per event: video/src/ads/<slug>.tsx exists and obeys the source rules;
-// out/<week>/<slug>/guion.md is faithful to the record; voz.mp3 is present
-// (absent is a notice: the video is then silent for that event).
+// Per event: video/src/ads/<slug>.tsx exists and obeys the source rules. With no
+// slugs, or with --narracion: the week's script (out/<week>/guion.md) is faithful to
+// the record and voz.mp3 is present (absent is a notice: the video is then silent).
+// A designer validating only its own slug is not asked for a script it does not write.
 // Exit 2 if anything is an error.
 
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { ROOT, printIssues, weekDir } from './core/project.mjs';
+import { ROOT, parseArgs, printIssues, weekDir } from './core/project.mjs';
 import { auditEvents } from './core/audit.mjs';
 import { checkAdSource } from './core/ad-source.mjs';
-import { checkGuion, cleanGuion } from './core/guion.mjs';
+import { parseNarracion } from './core/narracion.mjs';
+import { checkNarracion } from './core/narracion-check.mjs';
 
-const [week, ...slugs] = process.argv.slice(2);
+const { flags, positional } = parseArgs(process.argv.slice(2), { booleans: ['narracion'] });
+const [week, ...slugs] = positional;
 if (!week) {
-  console.error('usage: node scripts/validate.mjs <week> [slug ...]');
+  console.error('usage: node scripts/validate.mjs <week> [slug ...] [--narracion]');
   process.exit(1);
 }
 const eventsPath = join(weekDir(week), 'events.json');
@@ -43,18 +46,18 @@ for (const slug of seleccion) {
     todos.errores.push({ regla: 'slug-desconocido', slug, mensaje: `no event with slug "${slug}" in events.json` });
     continue;
   }
-  const carpeta = join(weekDir(week), slug);
-
   const ad = join(ROOT, 'video', 'src', 'ads', `${slug}.tsx`);
   if (existsSync(ad)) juntar(checkAdSource(readFileSync(ad, 'utf8')), slug);
   else todos.errores.push({ regla: 'sin-componente', slug, mensaje: `missing ${ad}` });
+}
 
-  const guion = join(carpeta, 'guion.md');
-  if (existsSync(guion)) juntar(checkGuion(cleanGuion(readFileSync(guion, 'utf8')), evento, doc.iglesia), slug);
-  else todos.errores.push({ regla: 'sin-guion', slug, mensaje: `missing ${guion}` });
+if (!slugs.length || flags.narracion) {
+  const guion = join(weekDir(week), 'guion.md');
+  if (existsSync(guion)) juntar(checkNarracion(parseNarracion(readFileSync(guion, 'utf8')), doc), undefined);
+  else todos.errores.push({ regla: 'sin-guion', mensaje: `missing ${guion}` });
 
-  if (!existsSync(join(carpeta, 'voz.mp3'))) {
-    todos.avisos.push({ regla: 'sin-audio', slug, mensaje: 'no voz.mp3: this event will be silent' });
+  if (!existsSync(join(weekDir(week), 'voz.mp3'))) {
+    todos.avisos.push({ regla: 'sin-audio', mensaje: 'no voz.mp3: the weekly video will be silent' });
   }
 }
 

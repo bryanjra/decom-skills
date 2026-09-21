@@ -118,3 +118,9 @@ test('the closing call to action is whatever church-info.md configures', () => {
 test('with no call to action configured, none is required', () => {
   assert.deepEqual(avisos(BUENO_CON_HORA.replace(' Te esperamos.', ''), conHora, {}), []);
 });
+
+test('a caller can set the length range, e.g. for a line with no closing', () => {
+  const corto = 'El sábado, Culto de jóvenes, en el Salón Principal.';
+  assert.deepEqual(avisos(corto, conHora, {}), ['longitud']);
+  assert.deepEqual(checkGuion(corto, conHora, {}, { longitud: { min: 6, max: 30 } }).avisos, []);
+});

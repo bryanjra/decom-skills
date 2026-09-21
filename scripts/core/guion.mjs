@@ -32,8 +32,9 @@ export function cleanGuion(md) {
  * @param {string} texto the spoken text (see cleanGuion)
  * @param {object} evento one record of events.json
  * @param {{lugarPorDefecto?: string|null, llamadoAccion?: string|null}} [iglesia] church-info.md facts
+ * @param {{longitud?: {min: number, max: number}}} [opciones] word range override
  */
-export function checkGuion(texto, evento, iglesia = {}) {
+export function checkGuion(texto, evento, iglesia = {}, { longitud = LONGITUD } = {}) {
   const errores = new Map();
   const avisos = new Map();
   const error = (regla, mensaje) => errores.has(regla) || errores.set(regla, mensaje);
@@ -117,8 +118,8 @@ export function checkGuion(texto, evento, iglesia = {}) {
     aviso('sin-cta', `the script does not close with "${iglesia.llamadoAccion}"`);
   }
   const palabras = texto.split(/\s+/).filter(Boolean).length;
-  if (palabras < LONGITUD.min || palabras > LONGITUD.max) {
-    aviso('longitud', `${palabras} words; aim for about 20-25`);
+  if (palabras < longitud.min || palabras > longitud.max) {
+    aviso('longitud', `${palabras} words; aim for ${longitud.min}-${longitud.max}`);
   }
 
   const lista = (m) => [...m].map(([regla, mensaje]) => ({ regla, mensaje }));

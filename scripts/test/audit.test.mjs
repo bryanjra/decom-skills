@@ -79,3 +79,9 @@ test('a virtual event on a non-virtual template is a notice', () => {
   assert.deepEqual(r.errores, []);
   assert.equal(r.avisos[0].regla, 'plantilla-virtual');
 });
+
+test('a slug that collides with a section of the weekly script is an error', () => {
+  for (const slug of ['intro', 'outro']) {
+    assert.ok(reglas(auditEvents(doc(ev({ slug })))).includes('slug-reservado'), slug);
+  }
+});
