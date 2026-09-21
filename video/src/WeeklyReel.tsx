@@ -14,9 +14,6 @@ import type {WeeklyReelProps} from './types';
 
 const {fps} = brand.video;
 
-/** How far the audio file's length may differ from where its alignment ends, in seconds. */
-const AUDIO_TOLERANCE_SECONDS = 0.5;
-
 /** Fade, slide and wipe in rotation, so consecutive cuts do not repeat. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const presentationFor = (i: number): TransitionPresentation<any> =>
@@ -33,9 +30,9 @@ export const calculateWeeklyReel: CalculateMetadataFunction<WeeklyReelProps> = a
   }
   if (props.narration) {
     const real = await getAudioDurationInSeconds(staticFile(props.narration.audioSrc));
-    if (Math.abs(real - props.narration.audioSeconds) > AUDIO_TOLERANCE_SECONDS) {
+    if (Math.abs(real - props.narration.audioSeconds) > brand.motion.audioToleranceSeconds) {
       throw new Error(
-        `${props.narration.audioSrc} lasts ${real.toFixed(2)} s but its alignment ends at ${props.narration.audioSeconds.toFixed(2)} s: regenerate the voiceover (node scripts/tts.mjs --force)`,
+        `${props.narration.audioSrc} lasts ${real.toFixed(2)} s but its alignment ends at ${props.narration.audioSeconds.toFixed(2)} s: regenerate the voiceover (node scripts/tts.mjs --week <week> --force)`,
       );
     }
   }

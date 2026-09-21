@@ -67,6 +67,8 @@ export const motion = {
   slicePadAfterSeconds: 0.1,
   /** Narration pace, only used to size a scene that has no audio yet. */
   wordsPerSecond: 2.5,
+  /** How far the audio file's length may differ from where its alignment ends before the reel refuses to render. */
+  audioToleranceSeconds: 0.5,
 } as const;
 
 export const audio = {musicVolume: 0.12} as const;

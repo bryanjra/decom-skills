@@ -67,6 +67,11 @@ test('the intro names the church when church-info.md has a name', () => {
   assert.deepEqual(reglas(r), ['intro-sin-iglesia']);
 });
 
+test('the intro is held to the same register rule as an event line: tú, not usted or "los invitamos"', () => {
+  const r = run(md('## intro', 'Los invitamos a Iglesia Ejemplo, estos son nuestros eventos del veintiuno al veintisiete de septiembre.', '## oracion-virtual', ORACION, '## outro', OUTRO), UNO);
+  assert.deepEqual(reglas(r), ['registro-usted']);
+});
+
 test('an events.json from before semana.hablada asks for a new normalize run', () => {
   const r = run(BUENO_UNO, { ...UNO, semana: {} });
   assert.deepEqual(reglas(r), ['semana-sin-hablada']);

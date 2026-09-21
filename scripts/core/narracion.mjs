@@ -60,7 +60,7 @@ export function sectionTimes(sections, alignment) {
   const { text, spans } = buildNarration(sections);
   const { characters, character_start_times_seconds: inicios, character_end_times_seconds: fines } = alignment;
   if (characters.join('') !== text || inicios.length !== characters.length || fines.length !== characters.length) {
-    throw new Error('the alignment is not the alignment of this script: regenerate the voiceover (node scripts/tts.mjs --force)');
+    throw new Error('the alignment is not the alignment of this script: regenerate the voiceover (node scripts/tts.mjs --week <week> --force)');
   }
   return spans.map(({ id, start, end }) => ({ id, startSec: inicios[start], endSec: fines[end - 1] }));
 }

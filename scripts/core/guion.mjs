@@ -16,6 +16,12 @@ const PERIODO_DICHO = /^[^.!?]*?\b(?:de la (manana|tarde|noche|madrugada)|del (m
 
 const LONGITUD = { min: 15, max: 32 }; // the plan targets ~20-25 words
 
+/** True when the spoken text uses the formal register (usted, "los invitamos"): hard rule 2 wants tú. */
+export function registroFormal(texto) {
+  const t = norm(texto);
+  return /\busted(?:es)?\b/.test(t) || /\b(?:los|les|le)\s+(?:esperamos|invitamos)\b/.test(t);
+}
+
 /** The spoken text of a guion.md: no headings, no HTML comments. */
 export function cleanGuion(md) {
   return md
@@ -110,9 +116,7 @@ export function checkGuion(texto, evento, iglesia = {}, { longitud = LONGITUD } 
   }
 
   // Register: tú, never usted.
-  if (/\busted(?:es)?\b/.test(t) || /\b(?:los|les|le)\s+(?:esperamos|invitamos)\b/.test(t)) {
-    error('registro-usted', 'formal register; write for tú');
-  }
+  if (registroFormal(texto)) error('registro-usted', 'formal register; write for tú');
 
   if (iglesia.llamadoAccion && !t.includes(norm(iglesia.llamadoAccion))) {
     aviso('sin-cta', `the script does not close with "${iglesia.llamadoAccion}"`);

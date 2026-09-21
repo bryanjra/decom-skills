@@ -82,6 +82,7 @@ context window, and only a short manifest fragment comes back to the orchestrato
   skills/church-ads/
     SKILL.md                     orchestrator workflow
     design.md                    brand + component contract
+    creative-ads.md              creative levels: how much creativity each ad gets
     script.md                    Spanish copywriting rules for the week's narration
 brand/
   logo.svg                       church logo (to be supplied)

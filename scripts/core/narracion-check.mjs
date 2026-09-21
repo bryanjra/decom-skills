@@ -4,7 +4,7 @@
 // the intro and outro, which say only what events.json and church-info.md give.
 // It is a heuristic net, not proof: the orchestrator still reads the whole script.
 
-import { checkGuion } from './guion.mjs';
+import { checkGuion, registroFormal } from './guion.mjs';
 import { stripAccents } from './spanish.mjs';
 
 /** A line about one event has no greeting and no closing, so it is shorter than a standalone ad. */
@@ -61,7 +61,7 @@ export function checkNarracion({ sections, problems = [] }, doc) {
     if (!semana?.hablada) error('semana-sin-hablada', 'events.json has no semana.hablada: run scripts/normalize.mjs again');
     else if (!t.includes(plano(semana.hablada))) error('intro-sin-semana', `the intro must say the week exactly as "${semana.hablada}"`);
     if (iglesia.nombre && !t.includes(plano(iglesia.nombre))) error('intro-sin-iglesia', `the intro must name the church, "${iglesia.nombre}"`);
-    if (/\busted(?:es)?\b/.test(t)) error('registro-usted', 'formal register; write for tú');
+    if (registroFormal(intro)) error('registro-usted', 'formal register; write for tú');
   }
 
   // Outro: the church's own call to action and blessing, nothing else.

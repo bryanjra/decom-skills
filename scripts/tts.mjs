@@ -22,7 +22,13 @@ import { buildNarration, parseNarracion } from './core/narracion.mjs';
 import { buildRequest, cacheKey, parseTimestampResponse, resolveCredentials } from './core/tts.mjs';
 
 loadEnv();
-const { flags } = parseArgs(process.argv.slice(2), { booleans: ['force'] });
+const { flags, positional } = parseArgs(process.argv.slice(2), { booleans: ['force'] });
+
+// The retired `tts.mjs <slug>` form would otherwise voice (and bill) the whole week, so refuse it up front.
+if (positional.length) {
+  console.error('usage: node scripts/tts.mjs [--week <week>] [--force]');
+  process.exit(1);
+}
 
 const semanas = existsSync(join(ROOT, 'out')) ? readdirSync(join(ROOT, 'out')).sort().reverse() : [];
 const week = flags.week || semanas.find((w) => existsSync(join(weekDir(w), 'guion.md')));

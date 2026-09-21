@@ -121,6 +121,9 @@ node scripts/render.mjs 2026-W39            # every event, then semana.mp4
 node scripts/render.mjs 2026-W39 <slug>     # one event only, no weekly video
 ```
 
+A single-slug render still needs a valid weekly `guion.md`: every clip is a slice of the
+one narration, so a facts error in another event's line blocks it too.
+
 `render.mjs` validates again, regenerates `video/src/ads/registry.gen.ts`, stages
 the week's `voz.mp3` into `video/public/audio/semana.mp3`, cuts the scenes where the
 voice pauses, bundles once, and renders one thing at a time: per event `ad.png` and

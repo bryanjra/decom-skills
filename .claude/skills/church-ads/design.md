@@ -42,9 +42,12 @@ delivery, it does not just look wrong.
 - Lay out with `useLayout()`: multiply 1080-based sizes by `u`, and branch on
   `portrait` for anything that would break at 9:16. No hardcoded 1920/1080 geometry;
   use flex and `inset` so a 9:16 render stays a config change.
-- The scene length is not the ad's business. It comes from the voiceover through
-  `calculateMetadata`, so the ad must look right at any length. Never write
-  `durationInFrames` with a number.
+- The scene length is not the ad's business, so the ad must look right at any length.
+  In the reel it comes from the voiceover's per-character timing (`voz.alineacion.json`),
+  cut in the pauses by `scripts/core/render-plan.mjs` and passed as props;
+  `calculateWeeklyReel` only sums them and checks the mp3 against that timing. A
+  standalone `EventAd` clip (`calculateEventAd`) lasts lead + its slice of the narration
+  + tail. Never write `durationInFrames` with a number.
 
 ## Facts
 
@@ -84,8 +87,10 @@ Every fact on screen comes from `event` or `iglesia`, and nothing else exists.
   helpers `useEnter` and `Reveal` do this. CSS `transition`, `animation`,
   `@keyframes` and Tailwind `animate-*` do not render and are rejected.
 - The still `ad.png` is taken about 60% into the clip. All text must be fully in by
-  then, and the voiceover starts after `brand.motion.leadSeconds`, so the key
-  information should be readable well before the narration ends.
+  then. In a standalone clip the voiceover starts after `brand.motion.leadSeconds`;
+  inside the reel the scene is cut in the pause before its line, so the speech starts
+  at the scene boundary. Either way the key information should be readable well before
+  the narration ends.
 
 ## Legibility
 
