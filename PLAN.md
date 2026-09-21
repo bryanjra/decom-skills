@@ -59,8 +59,9 @@ Orchestrator (main session — "professional video editor")
   2. pull events via Google Calendar MCP (America/Bogota)
   3. normalize + enrich -> out/<week>/events.json     <- the contract
   4. CHECKPOINT 1: one plain-Spanish message with the events and only the real
-     doubts, each with a suggested answer; events with no time or place are made
-     without it (never guessed); only integrity errors stop the run
+     doubts, numbered, each with a suggested answer (routine confirmations are plain
+     lines, not numbered); events with no time or place are made without it (never
+     guessed); only integrity errors stop the run
   5. fan out one ad-designer subagent per event (the visuals)
   6. write the week's narration (guion.md) and validate it, and every ad, against
      events.json
@@ -148,12 +149,12 @@ A fictional example (a real week is in `out/<week>/events.json`):
       "eventId": "…",                  // calendar event id
       "titulo": "Culto de jóvenes",
       "ministerio": "Jóvenes",         // a "(Jóvenes) - ..." prefix, or a church-info.md ministry word in the title
-      "fecha": "2026-09-26",
-      "diaSemana": "sábado",
-      "fechaTexto": "sábado 26 de septiembre",
-      "hora": "18:45",                 // card | title ("2pm ...") | church-info.md | overrides; null if unknown
-      "horaTexto": "6:45 p. m.",       // on screen
-      "horaHablada": "a las seis y cuarenta y cinco de la tarde",   // in the script, verbatim
+      "fecha": "2026-09-22",
+      "diaSemana": "martes",
+      "fechaTexto": "martes 22 de septiembre",
+      "hora": "19:00",                 // card | title ("2pm ...") | church-info.md | overrides; null if unknown
+      "horaTexto": "7:00 p. m.",       // on screen
+      "horaHablada": "a las siete de la noche",   // in the script, verbatim
       "horaFuente": "church-info.md",  // calendario | titulo | church-info.md | usuario; null when hora is
       "horaNota": "…",                 // only when hora is null: why no time was found
       "lugar": "Salón Principal",      // card | church-info.md default | "Virtual"/"Zoom" from the title | overrides; null if unknown
@@ -254,7 +255,7 @@ Full end-to-end on a real week; `README.md` for the church team. *The Spanish
 | Calendar | "IPUC Envigado Central II-2026". Sample week 2026-W39 has three all-day events: Oracion virtual (Mon 21), Refam juvenil (Wed 23), Charla familias (Fri 25). |
 | Church facts | Reference data, not code, so another church can reuse the tool. `church-info.md` fields: Nombre, Direccion, Lugar por defecto, Ministerios (comma list), Llamado a la accion, Despedida (optional), and the "Servicios recurrentes" section. The time zone comes from the calendar's own `timeZone`. Tests use a fictional church ("Iglesia Ejemplo"); `church-info.example.md` documents the format. |
 | Missing location | The place is the card's, else `Lugar por defecto` from `church-info.md`; "Zoom"/"virtual" in the title makes it a virtual event. With none of these the event has no place and the ad omits it. No address or phone needed. |
-| Missing schedule | **Supersedes "stop and ask".** Time is taken from the card, then the title, then `church-info.md`. An untimed event on a service day inherits that service's *start* time; Sundays have two named services, so they are matched by name. If nothing matches, the ad is made without a time (date only): nothing is guessed and nothing blocks. What is doubtful is asked once, in plain Spanish, at Checkpoint 1 (step 4 of the `church-ads` skill), and the person's "sigue" accepts only what the sources say. |
+| Missing schedule | **Supersedes "stop and ask".** Time is taken from the card, then the title, then `church-info.md`. An untimed event on a service day inherits that service's *start* time; a day with several services is matched by the service's name in the title. If nothing matches, the ad is made without a time (date only): nothing is guessed and nothing blocks. What is doubtful is asked once, in plain Spanish, at Checkpoint 1 (step 4 of the `church-ads` skill), and the person's "sigue" accepts only what the sources say: it drops a doubtful time, drops the place of an event that may be held elsewhere (a wrong place sends people to the wrong door; a missing one does not), and leaves out an event whose title nobody has explained (publishing cannot be undone; «anúncialo» brings it back). |
 | What blocks | Integrity errors only: an `inferido` time source, a malformed time, a duplicate slug, an override that names no event. |
 | Human answers | `overrides/<week>.json`, keyed by slug: `hora`, `lugar`, `modalidad`, `plantilla`, `omitir`; the orchestrator writes it from the person's answers. `hora: null` and `lugar: null` announce the event without a time or place, even one the sources gave. `destacado` is chosen only this way. |
 | Harness | Claude Code CLI, so the pipeline can run over SSH on a Linux VM rather than only at a desk. |

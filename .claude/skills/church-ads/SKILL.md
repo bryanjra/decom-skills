@@ -97,8 +97,9 @@ node scripts/normalize.mjs --week 2026-W39
 
 This writes `out/<week>/events.json` and prints one line per event. The time of
 each event comes from, in order: the card, the title (`2pm ...`), `church-info.md`
-(an untimed event on a service day takes that service's start time; Sundays with
-two named services are matched by name), and otherwise it has none. An
+(an untimed event on a service day takes that service's start time; a day with
+several services is matched by the service's name in the title, and no match means
+no time), and otherwise it has none. An
 `overrides/<week>.json` that already exists is applied on top (see Overrides).
 
 - Exit **2** means integrity errors: a malformed time, an untrusted `horaFuente`
@@ -108,46 +109,65 @@ two named services are matched by name), and otherwise it has none. An
 
 ### 4. Checkpoint 1: confirm the week and ask about what is unclear
 
-Send ONE message, in Spanish, before any designer starts. It has four parts:
+Send ONE message, in Spanish, before any designer starts. It has four parts, and only the
+third is numbered: a number means "I need your answer", so a routine confirmation never
+gets one.
 
 1. **The week and the calendars**: "Voy a preparar la semana del lunes 21 al domingo 27 de
    septiembre con los calendarios X y Y (7 eventos)." Mention a calendar with no events
    that week; if every calendar is empty, say so and stop: there is nothing to make.
-2. **Every event on one line**: day and date, title, and the time and place it will use,
-   with where each comes from in plain words. Time: `calendario` "del calendario",
-   `titulo` "escrita en el título", `church-info.md` "horario del culto", `usuario` "la que
-   me dijiste", none "sin hora". Place: `church-info.md` "el lugar de siempre", none "sin
-   lugar". Send this list even when there is nothing to ask: it is where a time taken from
-   the church's schedule gets caught.
-3. **Only the real doubts**, numbered, each with a suggested answer. Group the routine
-   ones. The doubts:
-   - **No time, or no place**: one question for all the events that will go without a time
-     ("Estos saldrán solo con la fecha: A, B. Si alguno tiene hora, escríbela"), and one
-     for those without a place. Suggested: leave them as they are.
+2. **Every event on one line**, introduced by a plain confirmation line ("Los tomé así;
+   dime si alguno está mal o si a uno le falta la hora:"): day and date, title, and the
+   time and place it will use, with where each comes from in plain words. Time:
+   `calendario` "del calendario", `titulo` "escrita en el título", `church-info.md`
+   "horario del culto", `usuario` "la que me dijiste", none "sin hora". Place: `calendario`
+   "del calendario", `titulo` "escrito en el título" (a virtual event), `church-info.md`
+   "el lugar de siempre", `usuario` "el que me dijiste", none "sin lugar". Send this list
+   even when there is nothing to ask: it is where a time taken from the church's schedule
+   gets caught.
+
+   **Routine confirmations are plain lines, never numbered.** The list already shows them;
+   the confirmation line above, or one plain sentence right below the list ("Los que
+   salen sin hora van solo con la fecha, y los que no traen lugar van en el Templo"),
+   says what they mean. Each keeps what the sources say, so there is nothing to
+   decide. They are:
+   - events that go without a time;
+   - events that go without a place;
+   - events whose place is only the default (`lugarFuente: church-info.md`) with no sign of
+     being elsewhere: they keep it;
+   - an event whose time comes from the church's schedule and that is plainly that
+     service (its title is just the service's name).
+3. **Only the real doubts**, numbered in the order of the week, each with a suggested
+   answer; if there are none, leave this part out. The doubts:
    - **A time with no AM/PM** in the title (the `horaNota` says the title was not used):
      "¿2 de la mañana o de la tarde?" Suggested: date only.
-   - **A Sunday with two services** where the title names neither (the `horaNota` lists
+   - **A day with two services** where the title names neither (the `horaNota` lists
      them): which one. Suggested: date only.
    - **An all-day event that took a service time** (`horaFuente: church-info.md`): does it
-     really start then? Ask it when it may not (a fast, a retreat, an event of several
-     days); when it is plainly the service itself, its line in the list is enough.
+     really start then? Ask it unless the event is plainly the service itself; a retreat,
+     a camp, an event of several days, or a service's name with something added
+     («Culto de adoración especial») may not start at the service time.
      Suggested: date only.
-   - **A place that is only the default** (`lugarFuente: church-info.md`): one grouped
-     question ("Estos saldrán en el Templo porque el calendario no dice lugar: A, B"), and a
-     separate one for an event that may be held elsewhere (a district or zone event, a
-     convention, another church). Suggested: leave it.
+   - **A place that may be elsewhere**: an event whose place is only the default
+     (`lugarFuente: church-info.md`) but whose title suggests it is held elsewhere (a
+     district or zone event, a convention, another church). Suggested: announce it without
+     a place (`lugar: null`). A wrong place sends people to the wrong door; a missing one
+     does not (hard rule 1).
    - **An unclear title**: an acronym or nickname you cannot read, or one that looks
      internal (a teachers' meeting, a committee). Ask what it is and whether to announce
-     it; never guess its meaning. Suggested: leave it out if it looks internal, otherwise
-     announce it with the title as the calendar wrote it.
-4. **How to answer**, in one line: "Responde con el número y una palabra, por ejemplo «1 no,
-   2 omitir, 3 solo fecha, 4 sí», o escríbeme con tus palabras. Si todo está bien,
-   escribe «sigue»."
+     it; never guess its meaning. Suggested: leave it out, whichever of the two it is.
+     Publishing cannot be undone once the video is out, while a left-out event comes back
+     when the person says «anúncialo».
+4. **How to answer**, in one line: "Responde con el número y una palabra, por ejemplo «1
+   solo fecha, 2 omitir, 3 anúncialo, 4 sin lugar», o escríbeme con tus palabras; si algo de
+   la lista está mal, dime cuál. Si todo está bien, escribe «sigue»."
 
-**«Sigue»** (or "todo bien", "dale") accepts every suggested answer. A suggestion is only
-ever one of three things: keep what the sources say, drop a time or place, or leave an
-event out. It never adds a fact, and the final report lists what was left out, so
-nothing disappears silently. Do not guess a time to fill a gap.
+**«Sigue»** (or "todo bien", "dale") accepts every suggested answer and every plain line
+as it stands. A suggestion is only ever one of three things: keep what the sources say,
+drop a time or place, or leave an event out. It never adds a fact, and it never publishes
+an event nobody has explained: an unclear title, or one that looks internal, is left out,
+not announced under the title as written. The final report lists every event left out
+(step 11), so nothing disappears silently. Do not guess a time to fill a gap.
 
 Then apply the answers yourself: write `overrides/<week>.json` (see Overrides), run step 3
 again and check that it exits 0. The person never sees a file. If an answer is unclear,
@@ -240,10 +260,11 @@ output is disposable and is never edited by hand: change the source and render a
 In Spanish, in plain words: what was produced and where (the week's folder under `out/`),
 then a list headed **"Revisa esto antes de publicar"** with what the person must know:
 the events made without a time or place, the events left out (by their answer or by
-"sigue"), any answer you applied for them, whether the week was rendered silent (and how
-to retry: they can ask you to voice it again; the command is `node scripts/tts.mjs --week
-<week>`), the designers' `avisos` put in plain words, and any word the voice may
-mispronounce. Always end with the reminder to check every time and date in the images.
+"sigue"; tell them that «anúncialo» brings one back), any answer you applied for them,
+whether the week was rendered silent (and how to retry: they can ask you to voice it
+again; the command is `node scripts/tts.mjs --week <week>`), the designers' `avisos` put
+in plain words, and any word the voice may mispronounce. Always end with the reminder to
+check every time and date in the images.
 
 ## Overrides
 
@@ -256,7 +277,7 @@ what stops a question being asked twice. All keys are optional:
 ```json
 {
   "culto-especial": {"hora": "19:00", "lugar": "Salón Principal", "plantilla": "destacado"},
-  "ayuno-evangelismo": {"hora": null},
+  "retiro-jovenes": {"hora": null},
   "reunion-interna": {"omitir": true}
 }
 ```
@@ -270,7 +291,8 @@ what stops a question being asked twice. All keys are optional:
 | `omitir` | `true` | drops the event from the week |
 
 In the person's words: "solo con la fecha" is `hora: null`, "sin lugar" is `lugar: null`,
-"omítelo" is `omitir: true`, and a time or place they give is `hora` or `lugar`.
+"omítelo" is `omitir: true`, "anúncialo" removes that `omitir`, and a time or place they
+give is `hora` or `lugar`.
 
 After editing an override, run step 3 again, then rewrite that event's line in `guion.md`
 (and re-run its designer if the template changed), validate, show the changed lines

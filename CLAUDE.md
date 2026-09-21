@@ -115,8 +115,8 @@ tracked in this repo.
   `charla-familias`.
 - An event's time is taken from, in order: the calendar card, the title
   (`2pm ...`), then `church-info.md`. An untimed event on a service day inherits
-  that service's *start* time; Sundays have two named services, so they are
-  matched by name. No match means no time. Human answers go in
+  that service's *start* time; a day with several services is matched by the
+  service's name in the title. No match means no time. Human answers go in
   `overrides/<week>.json`, keyed by slug (`hora`, `lugar`, `modalidad`,
   `plantilla`, `omitir`); `hora: null` and `lugar: null` announce the event
   without it. The orchestrator writes that file from the user's answers; users

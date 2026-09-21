@@ -75,11 +75,16 @@ En palabras sencillas, esto es lo que pasa:
    (o la próxima, si es fin de semana) y los calendarios de la iglesia, y te lo confirma.
 2. **Trae los eventos** de esa semana y los ordena en `out/2026-W39/events.json`
    (`W39` es el número de la semana del año, de lunes a domingo).
-3. **Te muestra los eventos y te pregunta lo que no está claro**, en un solo mensaje: qué
-   día, hora y lugar usará para cada uno y de dónde salió, y sus dudas (un evento sin hora,
-   una hora tomada del horario del culto, un lugar que no sabe, un título que no
-   entiende, un evento que parece interno). Respondes con pocas palabras, por ejemplo
-   «1 no, 2 solo fecha», o escribes «sigue» si todo está bien.
+3. **Te muestra los eventos y te pregunta solo lo que no está claro**, en un solo mensaje.
+   Primero, cada evento con su día, hora y lugar y de dónde salió cada dato; lo rutinario
+   (un evento sin hora sale solo con la fecha; uno sin lugar propio sale en el lugar de
+   siempre) va ahí, sin número. Después, con número, solo las dudas de verdad: una hora
+   que no está segura, un lugar que quizá es otro, un título que no entiende o que parece
+   interno. Respondes con pocas palabras, por ejemplo «1 solo fecha, 2 omitir,
+   3 anúncialo, 4 sin lugar», o escribes «sigue» si todo está bien. Con «sigue» no adivina
+   nada: quita la hora o el lugar dudosos y deja fuera los eventos que nadie le explicó,
+   porque un anuncio publicado no se puede deshacer. Al final te dice cuáles dejó fuera, y
+   uno vuelve a entrar si le dices «anúncialo».
 4. **Crea el diseño de cada evento.**
 5. **Escribe la narración de la semana**: un solo guion (bienvenida, un evento tras
    otro y el cierre) y una sola voz que lo lee de corrido.
@@ -111,13 +116,14 @@ En este orden, y se queda con la primera que encuentre:
 1. La hora de la tarjeta del evento en el calendario.
 2. Una hora escrita en el título (por ejemplo, `2pm ...`).
 3. `church-info.md`: si el evento no tiene hora y cae en un día con servicio fijo, toma la
-   hora de **inicio** de ese servicio. Los domingos hay dos servicios con nombre, así que
-   se elige por el nombre del evento; si no coincide con ninguno, no se asigna hora.
+   hora de **inicio** de ese servicio. Si ese día hay dos o más servicios (los domingos,
+   por ejemplo), se elige por el nombre del servicio que aparezca en el título del
+   evento; si el título no nombra ninguno, no se asigna hora.
 4. Si nada de lo anterior aplica, **no hay hora**.
 
 ## Corregir una hora, un lugar o el diseño
 
-Lo normal es decírselo a Claude, con tus palabras: «el ayuno es a las 8 a. m.», «ese
+Lo normal es decírselo a Claude, con tus palabras: «el retiro es a las 8 a. m.», «ese
 evento solo con la fecha», «omite la reunión interna». Claude guarda tu respuesta y no te
 la vuelve a preguntar.
 
@@ -128,7 +134,7 @@ su nombre corto (su *slug*: minúsculas, sin tildes y con guiones, como `charla-
 ```json
 {
   "charla-familias": { "hora": "19:00", "lugar": "Templo" },
-  "ayuno": { "hora": null },
+  "retiro-jovenes": { "hora": null },
   "reunion-interna": { "omitir": true }
 }
 ```
