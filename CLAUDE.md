@@ -1,8 +1,9 @@
 # CLAUDE.md
 
 Generator of weekly advertisement videos for IPUC Envigado Central. Reads a week
-of events from Google Calendar and produces, per event, a branded image, a
-Spanish voiceover and a video clip — then edits them into one weekly video.
+of events from Google Calendar and produces, per event, a branded image and a
+video clip, plus one Spanish narration for the whole week — then edits them into
+one weekly video.
 
 Read `PLAN.md` first: it holds the build contract, the phase breakdown and the
 verified feasibility findings.
@@ -20,16 +21,20 @@ verified feasibility findings.
 2. **All audience-facing output is in Spanish** (Colombia), addressing the
    reader as `tú` — never `usted`. The closing call to action is the church's
    own, from `church-info.md` (`Llamado a la accion`; for IPUC Envigado Central
-   it is "Te esperamos"); if the file has none, the ads have none. Code,
+   it is "Te esperamos"), spoken once, in the weekly outro, followed by the
+   church's `Despedida` if it has one ("Dios te bendiga"); event lines carry
+   neither. If the file has none, the ads have none. Code,
    comments and these docs are in English.
 3. **All video is 16:9, 1920x1080, 30fps.** Templates must re-layout rather than
    hardcode, so 9:16 remains possible later.
-4. **Subagents never render.** They write components, scripts and audio. The
-   orchestrator renders — it is CPU-bound and must be serialized.
+4. **Subagents never render.** They write components. The orchestrator writes
+   the week's narration, voices it once and renders — rendering is CPU-bound
+   and must be serialized.
 5. **`video/src/brand/tokens.ts` is the single source of truth** for colors,
    spacing and type scale. No hardcoded hex values in ad components.
 6. **Church facts are reference data, never code.** Name, address, default
-   place, ministries, call to action and recurring services come from
+   place, ministries, call to action, blessing (`Despedida`) and recurring
+   services come from
    `church-info.md` (format: `church-info.example.md`); the time zone comes from
    the calendar itself. Nothing about a specific church is written in `scripts/`
    or `video/src/`, so another church can reuse the tool. Tests use a fictional
@@ -42,9 +47,9 @@ directory does not drift.
 
 ```bash
 node scripts/normalize.mjs --week 2026-W39    # raw calendar -> out/<week>/events.json
-node scripts/validate.mjs 2026-W39 [slug]     # audit events.json and each delivery
+node scripts/validate.mjs 2026-W39 [slug] [--narracion]   # audit events.json, each ad, the week's guion.md
 node scripts/gen-registry.mjs                 # rebuild video/src/ads/registry.gen.ts
-node scripts/tts.mjs <slug> --week 2026-W39   # one voiceover (costs money)
+node scripts/tts.mjs --week 2026-W39            # the week's one voiceover (costs money)
 node scripts/render.mjs 2026-W39 [slug]       # stills, clips, then semana.mp4
 node --test scripts/test/*.test.mjs           # unit tests (use the glob)
 
@@ -78,8 +83,12 @@ tracked in this repo.
 
 - Remotion animations are driven by `useCurrentFrame()` + `interpolate()`. CSS
   `transition`/`animation` and Tailwind animation classes do **not** render.
-- Scene durations come from voiceover length via `calculateMetadata` +
-  `getAudioDurationInSeconds` — never hardcoded frame counts for ad scenes.
+- Scene durations come from the voiceover's per-character timing
+  (`voz.alineacion.json`), turned into props by `scripts/core/render-plan.mjs`;
+  `calculateMetadata` only sums them and checks the mp3 against that timing —
+  never hardcoded frame counts for ad scenes.
+- The week's script is `out/<week>/guion.md`: `## intro`, one `## <slug>` per
+  event, `## outro`, written by the orchestrator (rules: `.claude/skills/church-ads/script.md`).
 - One component per event at `video/src/ads/<slug>.tsx`, props-driven so it can
   be re-rendered from `events.json` alone.
 - Slugs are lowercase, accent-stripped, hyphenated: `Charla familias` ->

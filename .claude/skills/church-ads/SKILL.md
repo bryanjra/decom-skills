@@ -1,17 +1,18 @@
 ---
 name: church-ads
-description: Produce the weekly church ad video. Pulls a week of events from Google Calendar, builds events.json, fans out one ad-designer per event, validates, and renders per-event images and clips plus one combined weekly video. Use when asked to make, redo or check a week of church ads.
+description: Produce the weekly church ad video. Pulls a week of events from Google Calendar, builds events.json, fans out one ad-designer per event for the visuals, writes one narration for the whole week and voices it once, validates, and renders per-event images and clips plus one combined weekly video. Use when asked to make, redo or check a week of church ads.
 ---
 
 # Weekly church ads: orchestrator workflow
 
-You are the video editor. Designers write components, scripts and audio in
-parallel. **You render, and only you**: rendering is CPU-bound and is serialized by
-`scripts/render.mjs`.
+You are the video editor. Designers write components in parallel. **You write the
+week's narration, voice it once, and render, and only you render**: rendering is
+CPU-bound and is serialized by `scripts/render.mjs`.
 
-Read `design.md` (the visual and component contract), `script.md` (the Spanish
-copy rules) and `creative-ads.md` (how much creativity each kind of event gets) before
-briefing anyone; the designers read them too.
+Read `design.md` (the visual and component contract) and `creative-ads.md` (how much
+creativity each kind of event gets) before briefing anyone; the designers read them
+too. Read `script.md` (the Spanish copy rules) before writing the narration: it is
+yours, not theirs.
 
 ## Hard rules
 
@@ -21,7 +22,7 @@ briefing anyone; the designers read them too.
 2. All audience-facing text is Spanish (Colombia), addressing the reader as `tú`.
 3. All video is 16:9, 1920x1080, 30 fps.
 4. The church's facts (name, address, default place, ministries, call to action,
-   recurring services) live in `church-info.md`, never in code. See
+   blessing (`Despedida`), recurring services) live in `church-info.md`, never in code. See
    `church-info.example.md` for the format.
 
 ## Flow
@@ -72,28 +73,48 @@ continue, and do not guess a time to fill the gap.
 
 One subagent per event, all in a single message so they run in parallel. Each prompt
 is just the `week` and the `slug`; they read everything else themselves. They deliver
-`video/src/ads/<slug>.tsx`, `out/<week>/<slug>/guion.md`, `voz.mp3` and a JSON
-manifest fragment (`slug`, `plantilla`, `nivel`, `palabras`, `audio`, `avisos`). Collect the
-fragments; gather every `avisos` entry for the final report.
+`video/src/ads/<slug>.tsx` and a JSON manifest fragment (`slug`, `plantilla`, `nivel`,
+`avisos`). They write no script and make no audio. Collect the fragments; gather every
+`avisos` entry for the final report.
 
-A designer that reports `audio: "silent"` (ElevenLabs unreachable) is a valid
-delivery: the event is rendered without a voiceover and listed at the end.
+### 6. Write the week's narration
 
-### 6. Validate every delivery
+Write `out/<week>/guion.md` yourself, once, with every event of `events.json` in view,
+following `script.md`: `## intro`, one `## <slug>` per event in `events.json` order, and
+`## outro`. This is what makes the video one piece instead of separate ads: vary how each
+event line opens, let the lines lead into one another, and keep the church's call to
+action for the outro alone.
+
+### 7. Validate
 
 ```bash
 node scripts/validate.mjs 2026-W39
 ```
 
-This checks each ad file against the source rules and each script against its
-record. Exit **2** blocks rendering: send the error back to that event's designer (or
-fix the file yourself), then validate again. Notices do not block.
+This checks each ad file against the source rules and the narration against the
+record: the sections, the intro (church name, the week as `semana.hablada`), each event
+line's facts, and the outro (exactly the church's closing words). Exit **2** blocks
+rendering: send a component error back to that event's designer (or fix the file
+yourself), fix a script error in `guion.md`, then validate again. Notices do not block.
 
-Then read every `guion.md` against `events.json` yourself. The checker is a net, not
-proof: it will not notice an invented topic. A time in a church ad that is not in
-the record sends real people to a locked door.
+Then read `guion.md` against `events.json` yourself. The checker is a net, not proof:
+it will not notice an invented topic. A time in a church ad that is not in the record
+sends real people to a locked door.
 
-### 7. Render
+### 8. Voice the week
+
+```bash
+node scripts/tts.mjs --week 2026-W39
+```
+
+One request voices the whole script in a single take and keeps its per-character timing
+(`voz.mp3`, `voz.json`, `voz.alineacion.json`). It refuses to run while validation has
+errors and reuses the files when the text is unchanged. It costs money and every edit
+re-voices the whole week, so validate and read first. Exit **3** (ElevenLabs unreachable)
+is a valid outcome: the week is rendered silent and reported. After the first voicing,
+ask the person to listen: this is the first time the voice says the church's name.
+
+### 9. Render
 
 ```bash
 node scripts/render.mjs 2026-W39            # every event, then semana.mp4
@@ -101,20 +122,22 @@ node scripts/render.mjs 2026-W39 <slug>     # one event only, no weekly video
 ```
 
 `render.mjs` validates again, regenerates `video/src/ads/registry.gen.ts`, stages
-each `voz.mp3` into `video/public/audio/`, bundles once, and renders one thing at a
-time: per event `ad.png` and `clip.mp4`, then `semana.mp4` (an intro card with the
-dated week text, the events in order with transitions, an outro; a music bed only
-if `video/public/music/bed.mp3` exists). Set `REMOTION_BROWSER_EXECUTABLE` where
-Remotion cannot download its own Chromium.
+the week's `voz.mp3` into `video/public/audio/semana.mp3`, cuts the scenes where the
+voice pauses, bundles once, and renders one thing at a time: per event `ad.png` and
+`clip.mp4` (its own slice of the narration), then `semana.mp4` (an intro card, the
+events in order with transitions, an outro, one continuous narration over all of it; a
+music bed only if `video/public/music/bed.mp3` exists). Set
+`REMOTION_BROWSER_EXECUTABLE` where Remotion cannot download its own Chromium.
 
 Look at the stills (`out/<week>/<slug>/ad.png`) before calling it done. Generated
 output is disposable and is never edited by hand: change the source and render again.
 
-### 8. Report
+### 10. Report
 
 Say what was produced, then the things the person must know: the events made
-without a time or place, any event rendered silent (and the command to retry its
-voice: `node scripts/tts.mjs <slug> --week <week>`), and the designers' `avisos`.
+without a time or place, whether the week was rendered silent (and the command to retry
+the voice: `node scripts/tts.mjs --week <week>`), the designers' `avisos`, and any word
+in the script the voice may mispronounce.
 
 ## Overrides
 
@@ -137,9 +160,9 @@ drops an event. All keys are optional:
 | `plantilla` | `estandar`, `destacado` or `virtual` | `destacado` is only ever chosen this way |
 | `omitir` | `true` | drops the event from the week |
 
-After editing an override, run step 3 again, then re-run the affected designer. A
-designer's script and component follow `events.json`, so an outdated one fails
-`validate.mjs`.
+After editing an override, run step 3 again, then rewrite that event's line in `guion.md`
+(and re-run its designer if the template changed) and voice the week again (step 8). A
+script or component that no longer follows `events.json` fails `validate.mjs`.
 
 ## Layout of a week
 
@@ -147,6 +170,8 @@ designer's script and component follow `events.json`, so an outdated one fails
 out/<week>/
   raw/<calendar>.json      calendar response, verbatim
   events.json              the contract
-  <slug>/{guion.md, voz.mp3, voz.json, ad.png, clip.mp4}
+  guion.md                 the week's narration, written by the orchestrator
+  voz.mp3, voz.json, voz.alineacion.json   the one voiceover and its per-character timing
+  <slug>/{ad.png, clip.mp4}
   semana.mp4
 ```

@@ -1,8 +1,9 @@
 # Anuncios semanales de la iglesia
 
 Esta herramienta lee los eventos de la semana en Google Calendar y prepara, para cada
-uno, una **imagen**, una **locución en español** y un **clip de video**. Luego junta todo
-en **un solo video semanal** con una tarjeta de introducción, transiciones y un cierre.
+uno, una **imagen** y un **clip de video**, y escribe **una sola narración en español**
+para toda la semana. Luego junta todo en **un solo video semanal** con una tarjeta de
+introducción, transiciones, la voz de corrido y un cierre.
 
 Todo sale en formato horizontal (16:9, 1920x1080), en español de Colombia y hablándole
 al público de **tú**.
@@ -26,11 +27,12 @@ fecha) y la herramienta te avisa. No se detiene y tampoco adivina.
 
    | Campo | Para qué sirve |
    |---|---|
-   | `Nombre` | Se dice una vez en la voz de cada anuncio; en pantalla el nombre va en el logo |
+   | `Nombre` | Se dice una vez, en la bienvenida de la voz de la semana; en pantalla el nombre va en el logo |
    | `Direccion` | Aparece en el cierre del video |
    | `Lugar por defecto` | Dónde es un evento cuando su tarjeta no dice nada |
    | `Ministerios` | Lista separada por comas (Jóvenes, Familias...) para etiquetar el público |
-   | `Llamado a la accion` | La frase con la que termina cada anuncio (por ejemplo, "Te esperamos") |
+   | `Llamado a la accion` | La frase con la que termina el video de la semana (por ejemplo, "Te esperamos") |
+   | `Despedida` | Opcional: lo que se dice justo después (por ejemplo, "Dios te bendiga") |
    | `Servicios recurrentes` | Los horarios fijos de la semana; de aquí sale la hora de un evento sin hora |
 
 3. **Una cuenta de ElevenLabs de pago** y una voz elegida. Guarda los datos en un archivo
@@ -66,9 +68,11 @@ sencillas, esto es lo que pasa:
    (`W39` es el número de la semana del año, de lunes a domingo).
 3. **Te dice qué eventos no tienen hora o lugar.** No es un error: esos anuncios salen
    sin ese dato. Aquí puedes corregirlo (ver más abajo).
-4. **Crea un anuncio por evento**: el diseño, el guion y la voz.
-5. **Revisa** que ningún guion diga algo que no esté en el evento.
-6. **Genera los videos.**
+4. **Crea el diseño de cada evento.**
+5. **Escribe la narración de la semana**: un solo guion (bienvenida, un evento tras
+   otro y el cierre) y una sola voz que lo lee de corrido.
+6. **Revisa** que el guion no diga algo que no esté en el evento.
+7. **Genera los videos.**
 
 El resultado queda en `out/<año>-W<semana>/`:
 
@@ -76,11 +80,11 @@ El resultado queda en `out/<año>-W<semana>/`:
 out/2026-W39/
   semana.mp4                 el video semanal completo
   events.json                los datos de la semana
+  guion.md                   lo que dice la voz, de principio a fin
+  voz.mp3                    la locución de toda la semana
   charla-familias/
     ad.png                   la imagen del anuncio
-    clip.mp4                 el clip con su voz
-    guion.md                 lo que dice la voz
-    voz.mp3                  la locución
+    clip.mp4                 el clip de ese evento, con su parte de la voz
 ```
 
 `out/` es desechable: si algo no te gusta, cambia el origen (el guion, un dato, una
@@ -119,42 +123,43 @@ guiones, como `charla-familias`):
 | `omitir` | `true` | saca el evento de la semana |
 
 Después vuelve a pedirle a Claude que actualice la semana. Como la hora quedó en el
-registro, los guiones y los diseños se rehacen con ella.
+registro, el guion y los diseños se rehacen con ella.
 
 ## Antes de publicar, revisa siempre
 
-- **Las horas y las fechas** de cada `ad.png` y de cada `guion.md`. Es lo más importante.
-- **Escucha cada voz.** Si un nombre suena raro (por ejemplo, una sigla), avísale a
-  Claude: los guiones respetan los nombres tal como están en el calendario.
+- **Las horas y las fechas** de cada `ad.png` y del `guion.md`. Es lo más importante.
+- **Escucha la voz completa.** Si un nombre suena raro (por ejemplo, una sigla), avísale a
+  Claude: el guion respeta los nombres tal como están en el calendario.
 - **Los títulos** salen tal cual los escribió el calendario, con o sin tildes. Si en el
   calendario dice "Oracion virtual", el anuncio dirá "Oracion virtual".
 
 ## Costos
 
-ElevenLabs cobra por caracteres de guion. Un guion típico tiene entre 80 y 170. Si el
-texto de un guion no cambia, la herramienta reutiliza la locución que ya tiene y **no
-vuelve a cobrar**; cambiar el texto sí genera un cobro nuevo. Por eso conviene dejar el
-guion bien revisado antes de generar la voz.
+ElevenLabs cobra por caracteres del guion, y la voz de toda la semana se genera de una
+sola vez. Si el texto del guion no cambia, la herramienta reutiliza la locución que ya
+tiene y **no vuelve a cobrar**; cambiar una sola palabra sí genera un cobro nuevo, porque
+se vuelve a leer la semana completa. Por eso conviene dejar el guion bien revisado antes
+de generar la voz.
 
 ## Problemas frecuentes
 
 | Qué ves | Qué significa |
 |---|---|
 | `[sin-hora]` ("has no time") | No se encontró hora. El anuncio sale con la fecha solamente. No es un error. |
-| "voiceover unavailable" | No se pudo generar la voz (sin conexión o un problema con la cuenta). El evento sale **sin audio** y se lista al final. |
+| "voiceover unavailable" | No se pudo generar la voz (sin conexión o un problema con la cuenta). La semana sale **sin audio** y se avisa al final; la voz se puede volver a intentar después. |
 | Un `ERROR` al validar | Un guion o un diseño dice algo que el evento no respalda. Se corrige y se vuelve a validar; hasta entonces no se genera nada. |
 | La voz no dice el nombre de la iglesia, o el video sale sin la frase final | Faltan esas líneas en `church-info.md`. |
 
 ## Cambiar solo un evento
 
 ```bash
-node scripts/tts.mjs charla-familias --week 2026-W39     # su voz
 node scripts/render.mjs 2026-W39 charla-familias         # su imagen y su clip
 node scripts/render.mjs 2026-W39                         # toda la semana y el video semanal
 ```
 
 Al indicar un evento, no se rehace el video semanal: hace falta generar la semana
-completa.
+completa. La voz es una sola para toda la semana: si cambias algo del guion, se vuelve a
+generar completa con `node scripts/tts.mjs --week 2026-W39`.
 
 ## Dónde está cada cosa
 

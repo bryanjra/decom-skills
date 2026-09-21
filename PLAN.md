@@ -1,8 +1,8 @@
 # Anuncios IPUC — Weekly Church Ad Video Generator
 
 Pulls a week of events from Google Calendar, fans out one subagent per event to
-design an ad and record a Spanish voiceover, then edits everything into one
-professionally-cut video plus per-event assets.
+design its ad, writes one Spanish narration for the whole week and voices it once, then
+edits everything into one professionally-cut video plus per-event assets.
 
 **Status:** in progress. Phases 1 and 2 are verified. The pipeline has run end to
 end on the real week 2026-W39 with real TTS: `events.json`, then per event an
@@ -60,27 +60,29 @@ Orchestrator (main session — "professional video editor")
   3. normalize + enrich -> out/<week>/events.json     <- the contract
   4. REPORT: events with no time or place are listed and made without it
      (never guessed, never blocking); only integrity errors stop the run
-  5. fan out one ad-designer subagent per event
-  6. validate every delivery against events.json
-  7. render stills, per-event clips, and the combined weekly video
+  5. fan out one ad-designer subagent per event (the visuals)
+  6. write the week's narration (guion.md) and validate it, and every ad, against
+     events.json
+  7. voice the week in one take (voz.mp3 + per-character timing)
+  8. render stills, per-event clips, and the combined weekly video
 ```
 
-Subagents write files and call APIs in parallel (I/O-bound, cheap). They never
-render — rendering is CPU-bound and is serialized by the orchestrator.
+Subagents write component files in parallel (I/O-bound, cheap). They never render —
+rendering is CPU-bound and is serialized by the orchestrator. The narration and its one
+voicing are the orchestrator's, so the script is written with every event in view.
 
-Fan-out is what keeps this tractable: each designer's React source, script drafts
-and API chatter stay inside its own context window, and only a short manifest
-fragment comes back to the orchestrator.
+Fan-out is what keeps this tractable: each designer's React source stays inside its own
+context window, and only a short manifest fragment comes back to the orchestrator.
 
 ### Repo layout
 
 ```
 .claude/
-  agents/ad-designer.md          subagent: designer + publicist
+  agents/ad-designer.md          subagent: designer of one event's ad component
   skills/church-ads/
     SKILL.md                     orchestrator workflow
     design.md                    brand + component contract
-    script.md                    Spanish copywriting rules
+    script.md                    Spanish copywriting rules for the week's narration
 brand/
   logo.svg                       church logo (to be supplied)
   fonts/                         vendored font files for deterministic renders
@@ -98,21 +100,23 @@ video/                           Remotion project (16:9, 1920x1080, 30fps)
     ads/<slug>.tsx               one component per event, written by subagents
     EventAd.tsx                  single-event composition
     WeeklyReel.tsx               TransitionSeries of all events
-  public/audio/<slug>.mp3        voiceovers
+  public/audio/semana.mp3        the week's voiceover, staged by render.mjs
 scripts/
   core/                          tested logic (spanish, titulo, church-info, normalize,
-                                 audit, guion, ad-source, tts, project, registry,
-                                 render-plan, stage-audio)
+                                 audit, guion, narracion, narracion-check, escenas,
+                                 ad-source, tts, project, registry, render-plan,
+                                 stage-audio)
   test/                          node --test scripts/test/*.test.mjs
   normalize.mjs                  raw calendar -> events.json
-  validate.mjs                   audits events.json and each delivery
+  validate.mjs                   audits events.json, each ad and the week's guion.md
   gen-registry.mjs               rebuilds video/src/ads/registry.gen.ts
   tts.mjs                        ElevenLabs text-to-speech
   voice.json                     TTS model and voice settings (voice ID is in .env)
   render.mjs                     stills, clips, weekly reel
 out/<YYYY>-W<NN>/
   events.json
-  <slug>/{ad.png, voz.mp3, clip.mp4, guion.md}
+  guion.md, voz.mp3, voz.json, voz.alineacion.json   the week's narration
+  <slug>/{ad.png, clip.mp4}
   semana.mp4
 ```
 
@@ -125,14 +129,15 @@ A fictional example (a real week is in `out/<week>/events.json`):
 ```jsonc
 {
   "week": "2026-W39",
-  "semana": {"inicio": "2026-09-21", "fin": "2026-09-27", "texto": "Semana del 21 al 27 de septiembre"},
+  "semana": {"inicio": "2026-09-21", "fin": "2026-09-27", "texto": "Semana del 21 al 27 de septiembre", "hablada": "del veintiuno al veintisiete de septiembre"},
   "calendar": "Calendario Ejemplo",
   "timezone": "America/Bogota",        // the calendar's own timeZone
   "iglesia": {                         // from church-info.md; null where it is silent
     "nombre": "Iglesia Ejemplo",
     "direccion": "Calle 1 #2-3, Ciudad Ejemplo",
     "lugarPorDefecto": "Salón Principal",
-    "llamadoAccion": "Te esperamos"
+    "llamadoAccion": "Te esperamos",
+    "despedida": "Dios te bendiga"
   },
   "events": [
     {
@@ -179,7 +184,7 @@ plan.
    in `scripts/voice.json`. The MCP connector is a good way to audition candidates.
 4. The church's reference data in `church-info.md` (format:
    `church-info.example.md`): Nombre, Direccion, Lugar por defecto, Ministerios,
-   Llamado a la accion, and the recurring services.
+   Llamado a la accion, Despedida (optional, added 2026-09-21), and the recurring services.
 
 ### Phase 1 — Scaffold + brand system
 Remotion project at 16:9 1920x1080 30fps. `tokens.ts` as the single source of
@@ -207,17 +212,14 @@ Normalizer handling the real mess found in the calendars:
 the run exits 0. *Done on 2026-W39: three all-day events, none with a time, exit 0.*
 
 ### Phase 3 — Subagent fleet
-`.claude/agents/ad-designer.md` defines one designer-publicist per event. Each reads
-`design.md` + `script.md` + its own event record, then delivers:
-- `video/src/ads/<slug>.tsx` — props-driven Remotion component
-- `out/<week>/<slug>/guion.md` — Spanish script, ~20-25 words (~10s read)
-- `out/<week>/<slug>/voz.mp3` — ElevenLabs audio
-- a manifest fragment (the designer's final message): template, word count, audio
-  status, warnings. Duration is not in it: `calculateMetadata` measures it from
-  `voz.mp3` at render time
-
-`script.md` fixes register, CTA, and forbids stating any fact absent from
-`events.json`.
+`.claude/agents/ad-designer.md` defines one designer per event. Each reads `design.md` and
+its own event record, then delivers `video/src/ads/<slug>.tsx` (a props-driven Remotion
+component) and a manifest fragment (template, warnings). *Amended 2026-09-21:* designers
+no longer write scripts or voice. The orchestrator writes one narration for the whole week
+(`out/<week>/guion.md`: intro, one section per event, outro), voices it in one ElevenLabs
+`with-timestamps` take, and the scenes are cut where the voice pauses. `script.md` fixes
+register and the closing words, and forbids stating any fact absent from `events.json`.
+Design: `docs/superpowers/specs/2026-09-21-weekly-narration-design.md`.
 
 **Checkpoint:** one subagent end-to-end on a single event.
 
@@ -227,9 +229,11 @@ hallucinated time), then renders stills, per-event clips, and `semana.mp4`:
 intro card, events joined by `<TransitionSeries>` with fade/slide/wipe, outro,
 music bed underneath.
 
-The detail that makes it read as *edited* rather than a slideshow:
-`calculateMetadata` + `getAudioDurationInSeconds`, so each scene lasts exactly as
-long as its own voiceover plus padding. No scene ends mid-sentence, no dead air.
+The detail that makes it read as *edited* rather than a slideshow (*amended
+2026-09-21*): one continuous narration over the whole reel, and each scene cut where the
+voice pauses, from the voice's per-character timing (`voz.alineacion.json`); the clip of
+one event plays only its own slice. `calculateMetadata` checks the mp3 against that
+timing. No scene ends mid-sentence, no dead air.
 
 ### Phase 5 — Dry run + docs
 Full end-to-end on a real week; `README.md` for the church team. *The Spanish
@@ -245,7 +249,7 @@ Full end-to-end on a real week; `README.md` for the church team. *The Spanish
 | Output format | 16:9 1920x1080 for everything. Templates built to re-layout to 9:16 later without a rewrite. |
 | Deliverables | Per event: image, audio, clip. Plus one combined weekly video. |
 | Calendar | "IPUC Envigado Central II-2026". Sample week 2026-W39 has three all-day events: Oracion virtual (Mon 21), Refam juvenil (Wed 23), Charla familias (Fri 25). |
-| Church facts | Reference data, not code, so another church can reuse the tool. `church-info.md` fields: Nombre, Direccion, Lugar por defecto, Ministerios (comma list), Llamado a la accion, and the "Servicios recurrentes" section. The time zone comes from the calendar's own `timeZone`. Tests use a fictional church ("Iglesia Ejemplo"); `church-info.example.md` documents the format. |
+| Church facts | Reference data, not code, so another church can reuse the tool. `church-info.md` fields: Nombre, Direccion, Lugar por defecto, Ministerios (comma list), Llamado a la accion, Despedida (optional), and the "Servicios recurrentes" section. The time zone comes from the calendar's own `timeZone`. Tests use a fictional church ("Iglesia Ejemplo"); `church-info.example.md` documents the format. |
 | Missing location | The place is the card's, else `Lugar por defecto` from `church-info.md`; "Zoom"/"virtual" in the title makes it a virtual event. With none of these the event has no place and the ad omits it. No address or phone needed. |
 | Missing schedule | **Supersedes "stop and ask".** Time is taken from the card, then the title, then `church-info.md`. An untimed event on a service day inherits that service's *start* time; Sundays have two named services, so they are matched by name. If nothing matches, the ad is made without a time (date only): nothing is guessed and nothing blocks. The report at step 4 lists those events. |
 | What blocks | Integrity errors only: an `inferido` time source, a malformed time, a duplicate slug, an override that names no event. |
@@ -255,7 +259,8 @@ Full end-to-end on a real week; `README.md` for the church team. *The Spanish
 | TTS billing | **A paid ElevenLabs plan (decided 2026-09-21). Supersedes pay-as-you-go.** The voice the church chose is a shared-library `professional` voice (Colombian Spanish), and ElevenLabs refuses library voices over the API on the free tier (HTTP 402, `paid_plan_required`); the free tier's premade voices are all English-labelled. Verified on the paid plan: three voiceovers generated with that voice. The original estimate (`eleven_multilingual_v2` at $0.10 per 1,000 characters, about $0.52/month at ~5,200 characters, no subscription) no longer applies: the cost is now the plan's price. `tts.mjs` still reuses an unchanged script's audio, so only new or edited text is billed. Flash/Turbo halves per-character cost but loses quality on Spanish narration. |
 | TTS licensing | Cleared. Confirmed directly with ElevenLabs that API use is good to go for this project; no attribution constraint blocks publishing. |
 | Register | `tú`. Warm and direct, never formal `usted`. Applies to every script and every on-screen line. |
-| Closing CTA | The church's own, read from `church-info.md` (`Llamado a la accion`). For IPUC Envigado Central that is **"Te esperamos"**. If the file has none, the ads have none. |
+| Closing CTA | The church's own, read from `church-info.md` (`Llamado a la accion`). For IPUC Envigado Central that is **"Te esperamos"**, spoken once in the weekly outro, followed by the optional `Despedida` (**"Dios te bendiga"**, added 2026-09-21). Event lines carry neither. If the file has none, the ads have none. |
+| Weekly narration | *2026-09-21.* One script for the whole week, voiced in one take, so the video sounds like one ad and not five joined ones. The intro and outro are narrated ("Bienvenidos a <Nombre>, estos son nuestros eventos del … al …"; the call to action and `Despedida`). |
 | Intro card | Yes. The weekly video opens with a dated card, e.g. "Semana del 21 al 27 de septiembre" — Spanish month names, lowercase. |
 | Music bed | None for now. `WeeklyReel` still wires the audio slot so adding a track later is a config change, not a rewrite. |
 
