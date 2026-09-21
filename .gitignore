@@ -229,3 +229,5 @@ node_modules/
 
 # examples
 ad-examples
+# git worktrees
+.claude/worktrees/
