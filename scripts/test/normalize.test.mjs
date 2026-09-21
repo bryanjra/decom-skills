@@ -55,6 +55,7 @@ test('the real II-2026 week yields three events, none with an invented time', ()
   assert.equal(doc.calendar, 'IPUC Envigado Central II-2026');
   assert.equal(doc.timezone, 'America/Bogota');
   assert.equal(doc.semana.texto, 'Semana del 21 al 27 de septiembre');
+  assert.equal(doc.semana.hablada, 'del veintiuno al veintisiete de septiembre');
   assert.deepEqual(doc.events.map((e) => e.slug), ['oracion-virtual', 'refam-juvenil', 'charla-familias']);
 
   const charla = doc.events[2];

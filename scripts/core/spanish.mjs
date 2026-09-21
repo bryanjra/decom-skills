@@ -129,3 +129,17 @@ export function horaHablada(hora) {
   const periodo = periodoDe(hora);
   return `${prep} ${HORA_PALABRA[h12]}${extra} ${periodo === 'mediodía' ? 'del mediodía' : `de la ${periodo}`}`;
 }
+
+// ---- spoken dates --------------------------------------------------------
+
+/** A day of the month as it is spoken: 1 -> "primero", 21 -> "veintiuno". */
+export const diaHablado = (n) => (n === 1 ? 'primero' : numeroEnPalabras(n));
+
+/** The week range as it is spoken: "del veintiuno al veintisiete de septiembre". */
+export function semanaHablada(inicio, fin) {
+  const a = partes(inicio);
+  const b = partes(fin);
+  return a.mes === b.mes
+    ? `del ${diaHablado(a.dia)} al ${diaHablado(b.dia)} de ${a.mes}`
+    : `del ${diaHablado(a.dia)} de ${a.mes} al ${diaHablado(b.dia)} de ${b.mes}`;
+}

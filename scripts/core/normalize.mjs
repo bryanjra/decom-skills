@@ -11,6 +11,7 @@ import {
   horaTexto,
   isHora,
   rangoTexto,
+  semanaHablada,
   semanaTexto,
   slugify,
   weekRange,
@@ -229,7 +230,7 @@ export function normalizeWeek({ week, calendars, churchInfo, overrides = {} }) {
   const nombres = [...new Set(calendars.map((c) => c.summary).filter(Boolean))];
   const doc = {
     week,
-    semana: { inicio, fin, texto: semanaTexto(inicio, fin) },
+    semana: { inicio, fin, texto: semanaTexto(inicio, fin), hablada: semanaHablada(inicio, fin) },
     calendar: nombres.join(' + '),
     timezone: calendars[0]?.timeZone ?? null,
     iglesia: {

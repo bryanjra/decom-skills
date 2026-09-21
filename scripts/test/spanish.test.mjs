@@ -10,6 +10,8 @@ import {
   isoWeek,
   weekRange,
   semanaTexto,
+  diaHablado,
+  semanaHablada,
 } from '../core/spanish.mjs';
 
 test('slugify strips accents, lowercases and hyphenates', () => {
@@ -64,4 +66,25 @@ test('isoWeek and weekRange follow ISO 8601 weeks', () => {
 test('semanaTexto builds the intro card line with lowercase months', () => {
   assert.equal(semanaTexto('2026-09-21', '2026-09-27'), 'Semana del 21 al 27 de septiembre');
   assert.equal(semanaTexto('2026-09-28', '2026-10-04'), 'Semana del 28 de septiembre al 4 de octubre');
+});
+
+test('diaHablado speaks a day of the month, with "primero" for the 1st', () => {
+  assert.equal(diaHablado(1), 'primero');
+  assert.equal(diaHablado(2), 'dos');
+  assert.equal(diaHablado(21), 'veintiuno');
+  assert.equal(diaHablado(30), 'treinta');
+  assert.equal(diaHablado(31), 'treinta y uno');
+});
+
+test('semanaHablada speaks the week range in words', () => {
+  assert.equal(semanaHablada('2026-09-21', '2026-09-27'), 'del veintiuno al veintisiete de septiembre');
+  assert.equal(semanaHablada('2026-03-02', '2026-03-08'), 'del dos al ocho de marzo');
+  assert.equal(semanaHablada('2026-06-01', '2026-06-07'), 'del primero al siete de junio');
+});
+
+test('semanaHablada names both months when the week crosses one', () => {
+  assert.equal(semanaHablada('2026-09-28', '2026-10-04'), 'del veintiocho de septiembre al cuatro de octubre');
+  assert.equal(semanaHablada('2026-08-31', '2026-09-06'), 'del treinta y uno de agosto al seis de septiembre');
+  assert.equal(semanaHablada('2026-10-26', '2026-11-01'), 'del veintiséis de octubre al primero de noviembre');
+  assert.equal(semanaHablada('2026-12-28', '2027-01-03'), 'del veintiocho de diciembre al tres de enero');
 });
