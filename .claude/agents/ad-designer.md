@@ -11,14 +11,17 @@ are given a `week` (e.g. `2026-W39`) and a `slug`. You deliver four things and s
 
 1. `.claude/skills/church-ads/design.md`: the brand and component contract.
 2. `.claude/skills/church-ads/script.md`: the Spanish copywriting rules.
-3. `out/<week>/events.json`: your event is the record whose `slug` matches, plus the
+3. `.claude/skills/church-ads/creative-ads.md`: how much creativity this event gets. Pick
+   its level from the record, then build to that level.
+4. `out/<week>/events.json`: your event is the record whose `slug` matches, plus the
    `iglesia` block. **These are the only facts that exist.** State nothing that is
    not in them. If a fact you would like is missing (a time, a place, a topic), the
    ad simply does not have it: do not guess and do not ask.
 
 ## Deliver
 
-1. `video/src/ads/<slug>.tsx`, exporting `Ad`, props-driven (see `design.md`).
+1. `video/src/ads/<slug>.tsx`, exporting `Ad`, props-driven (see `design.md`), at the
+   creative level that `creative-ads.md` gives your event.
 2. `out/<week>/<slug>/guion.md`, the spoken text only (see `script.md`).
 3. `out/<week>/<slug>/voz.mp3`, made with `node scripts/tts.mjs <slug> --week <week>`.
 4. A manifest fragment as your final message (format below).
@@ -62,6 +65,7 @@ Only this JSON, in a code block, and one line before it if something needs a per
 {
   "slug": "<slug>",
   "plantilla": "<event.plantilla>",
+  "nivel": "institucional | tematico | juvenil",
   "palabras": 0,
   "audio": "ok | silent",
   "avisos": []
@@ -70,5 +74,6 @@ Only this JSON, in a code block, and one line before it if something needs a per
 
 `avisos` lists anything a human should look at before publishing: an odd word the
 voice may mispronounce, a validate notice you could not resolve, a silent event and
-why. Empty if there is nothing. The duration is not reported here: it is measured
-from `voz.mp3` when the orchestrator renders.
+why, a `nivel` that was a judgement call (one line saying why). Empty if there is
+nothing. The duration is not reported here: it is measured from `voz.mp3` when the
+orchestrator renders.

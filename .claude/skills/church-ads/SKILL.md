@@ -9,8 +9,9 @@ You are the video editor. Designers write components, scripts and audio in
 parallel. **You render, and only you**: rendering is CPU-bound and is serialized by
 `scripts/render.mjs`.
 
-Read `design.md` (the visual and component contract) and `script.md` (the Spanish
-copy rules) before briefing anyone; the designers read them too.
+Read `design.md` (the visual and component contract), `script.md` (the Spanish
+copy rules) and `creative-ads.md` (how much creativity each kind of event gets) before
+briefing anyone; the designers read them too.
 
 ## Hard rules
 
@@ -72,7 +73,7 @@ continue, and do not guess a time to fill the gap.
 One subagent per event, all in a single message so they run in parallel. Each prompt
 is just the `week` and the `slug`; they read everything else themselves. They deliver
 `video/src/ads/<slug>.tsx`, `out/<week>/<slug>/guion.md`, `voz.mp3` and a JSON
-manifest fragment (`slug`, `plantilla`, `palabras`, `audio`, `avisos`). Collect the
+manifest fragment (`slug`, `plantilla`, `nivel`, `palabras`, `audio`, `avisos`). Collect the
 fragments; gather every `avisos` entry for the final report.
 
 A designer that reports `audio: "silent"` (ElevenLabs unreachable) is a valid
