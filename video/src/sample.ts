@@ -8,6 +8,7 @@ export const sampleIglesia: Iglesia = {
   direccion: 'Calle 1 #2-3, Ciudad Ejemplo',
   lugarPorDefecto: 'Salón Principal',
   llamadoAccion: 'Te esperamos',
+  despedida: 'Dios te bendiga',
 };
 
 const base = {eventId: null, horaFuente: null, lugarFuente: 'church-info.md'} as const;
@@ -67,13 +68,19 @@ export const sampleProps = (plantilla: Plantilla): EventAdProps => ({
   slug: sampleEvents[plantilla].slug,
   event: sampleEvents[plantilla],
   iglesia: sampleIglesia,
-  audioSrc: null,
+  voz: null,
   palabras: 24,
 });
+
+const sampleItems = (['virtual', 'destacado', 'estandar'] as const).map(sampleProps);
 
 export const sampleReel: WeeklyReelProps = {
   semanaTexto: 'Semana del 21 al 27 de septiembre',
   iglesia: sampleIglesia,
-  items: (['virtual', 'destacado', 'estandar'] as const).map(sampleProps),
+  items: sampleItems,
   musicSrc: null,
+  // Studio preview only: a silent reel of 5 s per scene. A real week gets its lengths from core/render-plan.mjs.
+  frames: [150, ...sampleItems.map(() => 150), 150],
+  voiceStartFrame: 0,
+  narration: null,
 };

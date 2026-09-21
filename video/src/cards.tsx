@@ -59,6 +59,11 @@ export const OutroCard: React.FC<{iglesia: Iglesia}> = ({iglesia}) => {
         <Reveal delay={8}>
           <Cta text={iglesia.llamadoAccion} align="center" />
         </Reveal>
+        {iglesia.despedida ? (
+          <Reveal delay={14}>
+            <Headline text={iglesia.despedida} size={brand.type.subtitle} align="center" />
+          </Reveal>
+        ) : null}
         {iglesia.direccion ? (
           <Reveal delay={20}>
             <div style={{fontFamily: brand.font.body, fontWeight: 500, fontSize: brand.type.body * u, color: brand.color.textMuted}}>

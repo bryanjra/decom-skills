@@ -29,6 +29,8 @@ export type Iglesia = {
   direccion: string | null;
   lugarPorDefecto: string | null;
   llamadoAccion: string | null;
+  /** Said and shown right after the call to action (e.g. a blessing); null when church-info.md has none. */
+  despedida: string | null;
 };
 
 export type AdProps = {event: EventRecord; iglesia: Iglesia};
@@ -36,14 +38,14 @@ export type AdProps = {event: EventRecord; iglesia: Iglesia};
 /** What every video/src/ads/<slug>.tsx exports as `Ad`. */
 export type AdComponent = React.FC<AdProps>;
 
-/** Props of the single-event composition; render.mjs builds them from out/<week>/. */
+/** Props of the single-event composition; render.mjs builds them from out/<week>/ (core/render-plan.mjs). */
 export type EventAdProps = {
   slug: string;
   event: EventRecord;
   iglesia: Iglesia;
-  /** Path under public/ of the voiceover, or null for a silent event. */
-  audioSrc: string | null;
-  /** Words in guion.md; sizes the scene when there is no audio. */
+  /** The slice of the week's voiceover this event speaks (seconds into the file), or null for a silent clip. */
+  voz: {src: string; fromSec: number; toSec: number} | null;
+  /** Words of this event's line in guion.md; sizes the clip when there is no voiceover. */
   palabras: number;
 };
 
@@ -53,6 +55,10 @@ export type WeeklyReelProps = {
   items: EventAdProps[];
   /** Path under public/ of the music bed, or null for none. */
   musicSrc: string | null;
-  /** Filled in by calculateMetadata: each event scene's length in frames. */
-  frames?: number[];
+  /** Length in frames of each scene, in order: intro card, one per item, outro card. Overlaps count once (see timing.reelFrames). */
+  frames: number[];
+  /** Frame at which the narration starts: after the lead-in. */
+  voiceStartFrame: number;
+  /** The one voiceover of the whole reel, or null for a silent reel. */
+  narration: {audioSrc: string; audioSeconds: number} | null;
 };

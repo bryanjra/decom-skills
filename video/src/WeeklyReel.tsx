@@ -1,6 +1,7 @@
 import React from 'react';
-import {AbsoluteFill, Html5Audio, staticFile} from 'remotion';
+import {AbsoluteFill, Html5Audio, Sequence, staticFile} from 'remotion';
 import type {CalculateMetadataFunction} from 'remotion';
+import {getAudioDurationInSeconds} from '@remotion/media-utils';
 import {linearTiming, TransitionSeries, type TransitionPresentation} from '@remotion/transitions';
 import {fade} from '@remotion/transitions/fade';
 import {slide} from '@remotion/transitions/slide';
@@ -8,51 +9,64 @@ import {wipe} from '@remotion/transitions/wipe';
 import {AdScene} from './AdScene';
 import {IntroCard, OutroCard} from './cards';
 import {brand} from './brand/tokens';
-import {sceneFrames, transitionFrames, voiceSeconds} from './timing';
+import {reelFrames, transitionFrames} from './timing';
 import type {WeeklyReelProps} from './types';
 
 const {fps} = brand.video;
 
-const introFrames = Math.round(brand.motion.introSeconds * fps);
-const outroFrames = Math.round(brand.motion.outroSeconds * fps);
+/** How far the audio file's length may differ from where its alignment ends, in seconds. */
+const AUDIO_TOLERANCE_SECONDS = 0.5;
 
 /** Fade, slide and wipe in rotation, so consecutive cuts do not repeat. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const presentationFor = (i: number): TransitionPresentation<any> =>
   [fade(), slide({direction: 'from-right'}), wipe({direction: 'from-left'})][i % 3];
 
-/** Scenes overlap by one transition each, so the total is the sum minus the overlaps. */
-const reelFrames = (scenes: number[]): number => {
-  const all = [introFrames, ...scenes, outroFrames];
-  return all.reduce((a, b) => a + b, 0) - (all.length - 1) * transitionFrames(fps);
-};
-
-/** Every scene lasts as long as its own voiceover; the reel is as long as they add up to. */
+/**
+ * The scene lengths come from the voiceover's per-character timing (core/render-plan.mjs);
+ * here they are only summed, and the audio file is checked against that timing.
+ */
 export const calculateWeeklyReel: CalculateMetadataFunction<WeeklyReelProps> = async ({props}) => {
-  const frames = await Promise.all(props.items.map(async (item) => sceneFrames(await voiceSeconds(item), fps)));
-  return {durationInFrames: reelFrames(frames), props: {...props, frames}};
+  const escenas = props.items.length + 2;
+  if (props.frames.length !== escenas) {
+    throw new Error(`WeeklyReel needs ${escenas} scene lengths (intro, each event, outro), got ${props.frames.length}`);
+  }
+  if (props.narration) {
+    const real = await getAudioDurationInSeconds(staticFile(props.narration.audioSrc));
+    if (Math.abs(real - props.narration.audioSeconds) > AUDIO_TOLERANCE_SECONDS) {
+      throw new Error(
+        `${props.narration.audioSrc} lasts ${real.toFixed(2)} s but its alignment ends at ${props.narration.audioSeconds.toFixed(2)} s: regenerate the voiceover (node scripts/tts.mjs --force)`,
+      );
+    }
+  }
+  return {durationInFrames: reelFrames(props.frames, fps)};
 };
 
-export const WeeklyReel: React.FC<WeeklyReelProps> = ({semanaTexto, iglesia, items, musicSrc, frames}) => {
-  if (!frames || frames.length !== items.length) throw new Error('WeeklyReel needs per-scene frames from calculateMetadata');
+export const WeeklyReel: React.FC<WeeklyReelProps> = ({semanaTexto, iglesia, items, musicSrc, frames, voiceStartFrame, narration}) => {
   const timing = linearTiming({durationInFrames: transitionFrames(fps)});
   return (
     <AbsoluteFill>
       <TransitionSeries>
-        <TransitionSeries.Sequence durationInFrames={introFrames}>
+        <TransitionSeries.Sequence durationInFrames={frames[0]}>
           <IntroCard semanaTexto={semanaTexto} />
         </TransitionSeries.Sequence>
         {items.flatMap((item, i) => [
           <TransitionSeries.Transition key={`t-${item.slug}`} presentation={presentationFor(i)} timing={timing} />,
-          <TransitionSeries.Sequence key={item.slug} durationInFrames={frames[i]}>
-            <AdScene {...item} />
+          <TransitionSeries.Sequence key={item.slug} durationInFrames={frames[i + 1]}>
+            <AdScene slug={item.slug} event={item.event} iglesia={item.iglesia} />
           </TransitionSeries.Sequence>,
         ])}
         <TransitionSeries.Transition presentation={presentationFor(items.length)} timing={timing} />
-        <TransitionSeries.Sequence durationInFrames={outroFrames}>
+        <TransitionSeries.Sequence durationInFrames={frames[items.length + 1]}>
           <OutroCard iglesia={iglesia} />
         </TransitionSeries.Sequence>
       </TransitionSeries>
+      {/* One voice over the whole reel: it starts after the lead-in and is never cut at a scene boundary. */}
+      {narration ? (
+        <Sequence from={voiceStartFrame}>
+          <Html5Audio src={staticFile(narration.audioSrc)} />
+        </Sequence>
+      ) : null}
       {/* Music bed slot: pass musicSrc (a file under public/) to turn it on; null keeps the reel voice-only. */}
       {musicSrc ? <Html5Audio src={staticFile(musicSrc)} volume={brand.audio.musicVolume} loop /> : null}
     </AbsoluteFill>

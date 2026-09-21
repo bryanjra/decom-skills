@@ -60,8 +60,11 @@ export const motion = {
   /** Room after the last word; must be at least transitionSeconds. */
   tailSeconds: 1.0,
   transitionSeconds: 0.5,
-  introSeconds: 3,
+  /** Length of the outro card when there is no closing line to narrate; otherwise it lasts as long as the line. */
   outroSeconds: 4,
+  /** Extra audio a standalone clip keeps around its slice of the narration, so no consonant onset or tail is clipped. */
+  slicePadBeforeSeconds: 0.05,
+  slicePadAfterSeconds: 0.1,
   /** Narration pace, only used to size a scene that has no audio yet. */
   wordsPerSecond: 2.5,
 } as const;
