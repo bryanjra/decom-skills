@@ -1,0 +1,30 @@
+{
+  "summary": "IPUC Envigado Central II-2026",
+  "timeZone": "America/Bogota",
+  "events": [
+    {
+      "id": "_8d9lcgrfdpr6asjkc9gj2oph6lhj2dpjcgo3cob575h66p9lcopjap3165hjecpi70qg",
+      "summary": "(Jóvenes) - Oracion virtual",
+      "status": "confirmed",
+      "eventType": "DEFAULT",
+      "start": { "date": "2026-09-21T00:00:00Z" },
+      "end": { "date": "2026-09-22T00:00:00Z" }
+    },
+    {
+      "id": "_8d9lcgrfdpr6asjk69i6cc33c4r3ad326cqj0cj26kp34c9m6cp3cdj468r32phjcpi0",
+      "summary": "(Jóvenes) - Refam juvenil",
+      "status": "confirmed",
+      "eventType": "DEFAULT",
+      "start": { "date": "2026-09-23T00:00:00Z" },
+      "end": { "date": "2026-09-24T00:00:00Z" }
+    },
+    {
+      "id": "_8d9lcgrfdpr6asjkcpi34dpi75ij6cphcgo30ob5cco62p1l71im8ohk71gm6e9g6gpg",
+      "summary": "Charla familias",
+      "status": "confirmed",
+      "eventType": "DEFAULT",
+      "start": { "date": "2026-09-25T00:00:00Z" },
+      "end": { "date": "2026-09-26T00:00:00Z" }
+    }
+  ]
+}

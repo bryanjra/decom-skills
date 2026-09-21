@@ -1,0 +1,26 @@
+{
+  "name": "anuncios-video",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Remotion project for the weekly church ad video (16:9, 1920x1080, 30fps)",
+  "scripts": {
+    "studio": "remotion studio",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.526",
+    "@remotion/cli": "4.0.526",
+    "@remotion/fonts": "4.0.526",
+    "@remotion/media-utils": "4.0.526",
+    "@remotion/renderer": "4.0.526",
+    "@remotion/transitions": "4.0.526",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "remotion": "4.0.526"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "7.0.2"
+  }
+}

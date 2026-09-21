@@ -1,1 +1,171 @@
-# decom-skills
+# Anuncios semanales de la iglesia
+
+Esta herramienta lee los eventos de la semana en Google Calendar y prepara, para cada
+uno, una **imagen**, una **locución en español** y un **clip de video**. Luego junta todo
+en **un solo video semanal** con una tarjeta de introducción, transiciones y un cierre.
+
+Todo sale en formato horizontal (16:9, 1920x1080), en español de Colombia y hablándole
+al público de **tú**.
+
+## La regla que no se rompe
+
+**La herramienta nunca inventa datos de un evento.** Una hora, un lugar o un detalle
+solo pueden venir de tres sitios: la tarjeta del evento en el calendario,
+`church-info.md`, o alguien del equipo. Una hora equivocada en un anuncio manda a la
+gente a una puerta cerrada.
+
+Por eso, si no se sabe la hora de un evento, el anuncio **sale sin hora** (solo con la
+fecha) y la herramienta te avisa. No se detiene y tampoco adivina.
+
+## Lo que necesitas una sola vez
+
+1. **Claude Code**, abierto en esta carpeta y con acceso al Google Calendar de la
+   iglesia.
+2. **`church-info.md`**: los datos de tu iglesia. Copia `church-info.example.md` y
+   llénalo. Estos campos son opcionales, pero lo que falte no aparecerá en los anuncios:
+
+   | Campo | Para qué sirve |
+   |---|---|
+   | `Nombre` | Se muestra en la tarjeta de introducción y en cada anuncio |
+   | `Direccion` | Aparece en el cierre del video |
+   | `Lugar por defecto` | Dónde es un evento cuando su tarjeta no dice nada |
+   | `Ministerios` | Lista separada por comas (Jóvenes, Familias...) para etiquetar el público |
+   | `Llamado a la accion` | La frase con la que termina cada anuncio (por ejemplo, "Te esperamos") |
+   | `Servicios recurrentes` | Los horarios fijos de la semana; de aquí sale la hora de un evento sin hora |
+
+3. **Una cuenta de ElevenLabs de pago** y una voz elegida. Guarda los datos en un archivo
+   `.env` en esta carpeta (nunca lo compartas ni lo subas a ningún sitio):
+
+   ```
+   ELEVEN_LABS_API_KEY=...
+   ELEVEN_LABS_VOICE_ID=...
+   ```
+
+   Las voces de la biblioteca de ElevenLabs solo se pueden usar por API con un plan de
+   pago. El modelo y los ajustes de la voz están en `scripts/voice.json`.
+4. **El logo y los colores de la iglesia.** Hoy el diseño usa colores y una tipografía de
+   muestra. Cuando los tengas: el logo va en `brand/logo.svg`, y los colores, las
+   fuentes y el logo se registran en `video/src/brand/tokens.ts`, el único archivo donde
+   viven.
+
+> Para quien administra el equipo: hace falta Node 22 o superior y las dependencias
+> instaladas en `video/`. En Linux, el navegador de Remotion necesita librerías del
+> sistema (`libnss3` y otras); `CLAUDE.md` explica cómo comprobarlo.
+
+## Cada semana
+
+Abre Claude Code en esta carpeta y pídele, por ejemplo:
+
+> Haz los anuncios de la semana del 21 de septiembre.
+
+Claude sigue la guía `church-ads` (en `.claude/skills/church-ads/`). En palabras
+sencillas, esto es lo que pasa:
+
+1. **Te pregunta** qué calendario y qué semana.
+2. **Trae los eventos** de esa semana y los ordena en `out/2026-W39/events.json`
+   (`W39` es el número de la semana del año, de lunes a domingo).
+3. **Te dice qué eventos no tienen hora o lugar.** No es un error: esos anuncios salen
+   sin ese dato. Aquí puedes corregirlo (ver más abajo).
+4. **Crea un anuncio por evento**: el diseño, el guion y la voz.
+5. **Revisa** que ningún guion diga algo que no esté en el evento.
+6. **Genera los videos.**
+
+El resultado queda en `out/<año>-W<semana>/`:
+
+```
+out/2026-W39/
+  semana.mp4                 el video semanal completo
+  events.json                los datos de la semana
+  charla-familias/
+    ad.png                   la imagen del anuncio
+    clip.mp4                 el clip con su voz
+    guion.md                 lo que dice la voz
+    voz.mp3                  la locución
+```
+
+`out/` es desechable: si algo no te gusta, cambia el origen (el guion, un dato, una
+corrección) y vuelve a generar. Nunca edites esos archivos a mano.
+
+## Cómo se decide la hora de un evento
+
+En este orden, y se queda con la primera que encuentre:
+
+1. La hora de la tarjeta del evento en el calendario.
+2. Una hora escrita en el título (por ejemplo, `2pm ...`).
+3. `church-info.md`: si el evento no tiene hora y cae en un día con servicio fijo, toma la
+   hora de **inicio** de ese servicio. Los domingos hay dos servicios con nombre, así que
+   se elige por el nombre del evento; si no coincide con ninguno, no se asigna hora.
+4. Si nada de lo anterior aplica, **no hay hora**.
+
+## Corregir una hora, un lugar o el diseño
+
+Crea el archivo `overrides/<semana>.json` (por ejemplo, `overrides/2026-W39.json`). Cada
+evento se identifica por su nombre corto (su *slug*: minúsculas, sin tildes y con
+guiones, como `charla-familias`):
+
+```json
+{
+  "charla-familias": { "hora": "19:00", "lugar": "Templo" },
+  "reunion-interna": { "omitir": true }
+}
+```
+
+| Clave | Valor | Efecto |
+|---|---|---|
+| `hora` | `"HH:MM"` en 24 horas | pone la hora; queda registrado que la dio una persona |
+| `lugar` | texto | pone el lugar |
+| `modalidad` | `presencial` o `virtual` | si eliges `virtual`, pon también `plantilla: "virtual"` |
+| `plantilla` | `estandar`, `destacado` o `virtual` | `destacado` solo se usa por esta vía |
+| `omitir` | `true` | saca el evento de la semana |
+
+Después vuelve a pedirle a Claude que actualice la semana. Como la hora quedó en el
+registro, los guiones y los diseños se rehacen con ella.
+
+## Antes de publicar, revisa siempre
+
+- **Las horas y las fechas** de cada `ad.png` y de cada `guion.md`. Es lo más importante.
+- **Escucha cada voz.** Si un nombre suena raro (por ejemplo, una sigla), avísale a
+  Claude: los guiones respetan los nombres tal como están en el calendario.
+- **Los títulos** salen tal cual los escribió el calendario, con o sin tildes. Si en el
+  calendario dice "Oracion virtual", el anuncio dirá "Oracion virtual".
+
+## Costos
+
+ElevenLabs cobra por caracteres de guion. Un guion típico tiene entre 80 y 170. Si el
+texto de un guion no cambia, la herramienta reutiliza la locución que ya tiene y **no
+vuelve a cobrar**; cambiar el texto sí genera un cobro nuevo. Por eso conviene dejar el
+guion bien revisado antes de generar la voz.
+
+## Problemas frecuentes
+
+| Qué ves | Qué significa |
+|---|---|
+| `[sin-hora]` ("has no time") | No se encontró hora. El anuncio sale con la fecha solamente. No es un error. |
+| "voiceover unavailable" | No se pudo generar la voz (sin conexión o un problema con la cuenta). El evento sale **sin audio** y se lista al final. |
+| Un `ERROR` al validar | Un guion o un diseño dice algo que el evento no respalda. Se corrige y se vuelve a validar; hasta entonces no se genera nada. |
+| El video sale sin nombre de la iglesia o sin la frase final | Faltan esas líneas en `church-info.md`. |
+
+## Cambiar solo un evento
+
+```bash
+node scripts/tts.mjs charla-familias --week 2026-W39     # su voz
+node scripts/render.mjs 2026-W39 charla-familias         # su imagen y su clip
+node scripts/render.mjs 2026-W39                         # toda la semana y el video semanal
+```
+
+Al indicar un evento, no se rehace el video semanal: hace falta generar la semana
+completa.
+
+## Dónde está cada cosa
+
+| Ruta | Qué contiene |
+|---|---|
+| `church-info.md` | Los datos de tu iglesia |
+| `overrides/` | Correcciones de una persona, por semana |
+| `brand/` | Logo y fuentes |
+| `video/src/brand/tokens.ts` | Colores, tipografía y tamaños: el único sitio donde cambia el diseño de marca |
+| `video/src/ads/` | Un archivo de diseño por evento |
+| `scripts/` | Los pasos que Claude ejecuta |
+| `out/` | Lo que se genera cada semana |
+| `CLAUDE.md`, `PLAN.md` | Las reglas del proyecto y el plan de construcción (en inglés) |
+| `.claude/skills/church-ads/` | La guía de trabajo: flujo semanal, diseño y redacción de guiones |

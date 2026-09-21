@@ -1,0 +1,102 @@
+# Design contract
+
+Every `video/src/ads/<slug>.tsx` obeys this. `node scripts/validate.mjs` enforces
+the parts a type-checker cannot (see the last section), so a broken rule fails the
+delivery, it does not just look wrong.
+
+## Component
+
+- One file per event: `video/src/ads/<slug>.tsx`, `<slug>` exactly as in `events.json`.
+- It exports `Ad`, props-driven, so any week re-renders from `events.json` alone:
+
+  ```tsx
+  import React from 'react';
+  import {Destacado} from '../templates/Destacado';
+  import {Estandar} from '../templates/Estandar';
+  import {Virtual} from '../templates/Virtual';
+  import type {TemplateProps} from '../templates/parts';
+  import type {AdComponent, Plantilla} from '../types';
+
+  const layouts: Record<Plantilla, React.FC<TemplateProps>> = {destacado: Destacado, estandar: Estandar, virtual: Virtual};
+
+  export const Ad: AdComponent = ({event, iglesia}) => {
+    const Layout = layouts[event.plantilla];
+    return <Layout event={event} iglesia={iglesia} />;
+  };
+  ```
+
+- Pick the layout with `event.plantilla`; never hardcode one. The orchestrator
+  decides the template (`normalize.mjs`, then `overrides/<week>.json`), so an
+  override changes the layout without anyone rewriting the ad. `destacado` is only
+  ever chosen by an override; a designer does not pick it.
+- Custom composition is allowed, built from `video/src/templates/parts.tsx`
+  (`Backdrop`, `Wordmark`, `MinistryTag`, `Headline`, `EventInfo`, `Cta`, `Reveal`)
+  as long as every rule below still holds.
+- A `headline` prop on a template may replace the title, but only with text built
+  from `event.titulo` / `event.ministerio`. No tagline that `events.json` does not
+  contain.
+
+## Format
+
+- 16:9, 1920x1080, 30 fps, from `brand.video`. An ad never sets width, height or fps.
+- Lay out with `useLayout()`: multiply 1080-based sizes by `u`, and branch on
+  `portrait` for anything that would break at 9:16. No hardcoded 1920/1080 geometry;
+  use flex and `inset` so a 9:16 render stays a config change.
+- The scene length is not the ad's business. It comes from the voiceover through
+  `calculateMetadata`, so the ad must look right at any length. Never write
+  `durationInFrames` with a number.
+
+## Facts
+
+Every fact on screen comes from `event` or `iglesia`, and nothing else exists.
+
+- Date: `event.fechaTexto`. Time: `event.horaTexto`. Place: `event.lugar`. Title:
+  `event.titulo`. Audience tag: `event.ministerio`. Church: `iglesia.nombre`.
+  Call to action: `iglesia.llamadoAccion`.
+- Never type a date, weekday, month, clock time or place into the file, even
+  "just for the layout". Use the sample data in `video/src/sample.ts` to preview.
+- No time (`hora` is `null`): the time row is simply absent. Do not write "hora por
+  confirmar", "próximamente" or a placeholder. Same for a `null` place, church name
+  or call to action: `EventInfo`, `Wordmark` and `Cta` already render nothing.
+- On-screen text is Spanish (Colombia), addressing the reader as `tú`.
+
+## Brand
+
+`video/src/brand/tokens.ts` is the single source of truth.
+
+- Colors: `brand.color.*`. No `#hex`, `rgb()` or `hsl()` in an ad. For a translucent
+  color use `alpha(brand.color.x, 0.4)`.
+- Type: `brand.font.display` / `brand.font.body` and the `brand.type` scale. Fonts
+  are vendored under `brand/fonts/` and registered once by `brand/fonts.ts`; do not
+  import web fonts.
+- Spacing: `brand.space.*`. The logo is drawn by `Wordmark`, which falls back to the
+  church name until `brand.logo` is set.
+- The token values are placeholders until the real brand arrives. Design against
+  the token names, never against what they currently look like.
+
+## Motion
+
+- Drive everything with `useCurrentFrame()` + `interpolate()` (or `spring()`); the
+  helpers `useEnter` and `Reveal` do this. CSS `transition`, `animation`,
+  `@keyframes` and Tailwind `animate-*` do not render and are rejected.
+- The still `ad.png` is taken about 60% into the clip. All text must be fully in by
+  then, and the voiceover starts after `brand.motion.leadSeconds`, so the key
+  information should be readable well before the narration ends.
+
+## Legibility
+
+- A long title must still fit: use `Headline` (it applies `fitSize`) or do the same.
+- Keep content inside the `brand.space.xl` margin of the frame.
+- Text sits on a solid or shaded area, never straight on a busy shape.
+
+## What `validate.mjs` rejects in an ad file
+
+The check reads every line, comments included, so keep comments free of literals.
+
+| Rule | Trips on |
+|---|---|
+| `hora-literal` | `7:00`, `7 pm` — render `event.horaTexto` |
+| `fecha-literal` | a weekday, or `de septiembre` — render `event.fechaTexto` |
+| `color-literal` | `#RRGGBB`, `rgb(`, `hsl(` — use tokens |
+| `css-animacion` | `transition:`, `animation:`, `@keyframes`, `animate-*` |
+| `duracion-fija` | `durationInFrames={90}` |

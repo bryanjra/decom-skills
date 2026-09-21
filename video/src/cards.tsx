@@ -1,0 +1,72 @@
+import React from 'react';
+import {AbsoluteFill} from 'remotion';
+import {brand} from './brand/tokens';
+import {useLayout} from './layout';
+import {Backdrop, Cta, Headline, Reveal, Wordmark} from './templates/parts';
+import type {Iglesia} from './types';
+
+/** Opens the weekly video with the dated card, e.g. "Semana del 21 al 27 de septiembre". */
+export const IntroCard: React.FC<{semanaTexto: string; iglesia: Iglesia}> = ({semanaTexto, iglesia}) => {
+  const {u} = useLayout();
+  return (
+    <AbsoluteFill style={{fontFamily: brand.font.body, color: brand.color.text}}>
+      <Backdrop zoom />
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          padding: brand.space.xl * u,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: brand.space.md * u,
+        }}
+      >
+        <Reveal>
+          <Wordmark iglesia={iglesia} align="center" />
+        </Reveal>
+        <Reveal delay={8}>
+          <Headline text={semanaTexto} size={brand.type.hero} align="center" />
+        </Reveal>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+/** Closes the weekly video with the church's own closing line and address, as far as church-info.md gives them. */
+export const OutroCard: React.FC<{iglesia: Iglesia}> = ({iglesia}) => {
+  const {u} = useLayout();
+  return (
+    <AbsoluteFill style={{fontFamily: brand.font.body, color: brand.color.text}}>
+      <Backdrop />
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          padding: brand.space.xl * u,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
+          gap: brand.space.md * u,
+        }}
+      >
+        <Reveal>
+          <Wordmark iglesia={iglesia} align="center" />
+        </Reveal>
+        <Reveal delay={8}>
+          <Cta text={iglesia.llamadoAccion} align="center" />
+        </Reveal>
+        {iglesia.direccion ? (
+          <Reveal delay={20}>
+            <div style={{fontFamily: brand.font.body, fontWeight: 500, fontSize: brand.type.body * u, color: brand.color.textMuted}}>
+              {iglesia.direccion}
+            </div>
+          </Reveal>
+        ) : null}
+      </div>
+    </AbsoluteFill>
+  );
+};
