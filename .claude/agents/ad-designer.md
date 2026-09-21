@@ -15,7 +15,8 @@ You are the designer for one event of the weekly church ad video. You are given 
 3. `out/<week>/events.json`: your event is the record whose `slug` matches, plus the
    `iglesia` block. **These are the only facts that exist.** Show nothing that is not
    in them. If a fact you would like is missing (a time, a place, a topic), the ad
-   simply does not have it: do not guess and do not ask.
+   simply does not have it: do not guess. You cannot reach the person, so do not ask
+   either; if it matters, put it in `avisos` and the orchestrator relays it.
 
 ## Deliver
 

@@ -55,16 +55,18 @@ never guess (§ 4, "Missing schedule").
 
 ```
 Orchestrator (main session — "professional video editor")
-  1. ask: which calendar? which week?
+  1. propose the week and the calendars (no perfect prompt needed)
   2. pull events via Google Calendar MCP (America/Bogota)
   3. normalize + enrich -> out/<week>/events.json     <- the contract
-  4. REPORT: events with no time or place are listed and made without it
-     (never guessed, never blocking); only integrity errors stop the run
+  4. CHECKPOINT 1: one plain-Spanish message with the events and only the real
+     doubts, each with a suggested answer; events with no time or place are made
+     without it (never guessed); only integrity errors stop the run
   5. fan out one ad-designer subagent per event (the visuals)
   6. write the week's narration (guion.md) and validate it, and every ad, against
      events.json
-  7. voice the week in one take (voz.mp3 + per-character timing)
-  8. render stills, per-event clips, and the combined weekly video
+  7. CHECKPOINT 2: show the script and wait for a yes before the paid voice
+  8. voice the week in one take (voz.mp3 + per-character timing)
+  9. render stills, per-event clips, and the combined weekly video
 ```
 
 Subagents write component files in parallel (I/O-bound, cheap). They never render —
@@ -252,9 +254,9 @@ Full end-to-end on a real week; `README.md` for the church team. *The Spanish
 | Calendar | "IPUC Envigado Central II-2026". Sample week 2026-W39 has three all-day events: Oracion virtual (Mon 21), Refam juvenil (Wed 23), Charla familias (Fri 25). |
 | Church facts | Reference data, not code, so another church can reuse the tool. `church-info.md` fields: Nombre, Direccion, Lugar por defecto, Ministerios (comma list), Llamado a la accion, Despedida (optional), and the "Servicios recurrentes" section. The time zone comes from the calendar's own `timeZone`. Tests use a fictional church ("Iglesia Ejemplo"); `church-info.example.md` documents the format. |
 | Missing location | The place is the card's, else `Lugar por defecto` from `church-info.md`; "Zoom"/"virtual" in the title makes it a virtual event. With none of these the event has no place and the ad omits it. No address or phone needed. |
-| Missing schedule | **Supersedes "stop and ask".** Time is taken from the card, then the title, then `church-info.md`. An untimed event on a service day inherits that service's *start* time; Sundays have two named services, so they are matched by name. If nothing matches, the ad is made without a time (date only): nothing is guessed and nothing blocks. The report at step 4 lists those events. |
+| Missing schedule | **Supersedes "stop and ask".** Time is taken from the card, then the title, then `church-info.md`. An untimed event on a service day inherits that service's *start* time; Sundays have two named services, so they are matched by name. If nothing matches, the ad is made without a time (date only): nothing is guessed and nothing blocks. What is doubtful is asked once, in plain Spanish, at Checkpoint 1 (step 4 of the `church-ads` skill), and the person's "sigue" accepts only what the sources say. |
 | What blocks | Integrity errors only: an `inferido` time source, a malformed time, a duplicate slug, an override that names no event. |
-| Human answers | `overrides/<week>.json`, keyed by slug: `hora`, `lugar`, `modalidad`, `plantilla`, `omitir`. `destacado` is chosen only this way. |
+| Human answers | `overrides/<week>.json`, keyed by slug: `hora`, `lugar`, `modalidad`, `plantilla`, `omitir`; the orchestrator writes it from the person's answers. `hora: null` and `lugar: null` announce the event without a time or place, even one the sources gave. `destacado` is chosen only this way. |
 | Harness | Claude Code CLI, so the pipeline can run over SSH on a Linux VM rather than only at a desk. |
 | TTS access | ElevenLabs REST API via `scripts/tts.mjs`. Not the MCP connector: the pipeline must re-render a past week identically, and voice, model and stability belong in version control. The MCP server is still useful in Phase 0 for auditioning voices. The voice ID lives in `.env`; the model and voice settings are in `scripts/voice.json`. |
 | TTS billing | **A paid ElevenLabs plan (decided 2026-09-21). Supersedes pay-as-you-go.** The voice the church chose is a shared-library `professional` voice (Colombian Spanish), and ElevenLabs refuses library voices over the API on the free tier (HTTP 402, `paid_plan_required`); the free tier's premade voices are all English-labelled. Verified on the paid plan: three voiceovers generated with that voice. The original estimate (`eleven_multilingual_v2` at $0.10 per 1,000 characters, about $0.52/month at ~5,200 characters, no subscription) no longer applies: the cost is now the plan's price. `tts.mjs` still reuses an unchanged script's audio, so only new or edited text is billed. Flash/Turbo halves per-character cost but loses quality on Spanish narration. |

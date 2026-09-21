@@ -21,7 +21,8 @@ solo pueden venir de tres sitios: la tarjeta del evento en el calendario,
 gente a una puerta cerrada.
 
 Por eso, si no se sabe la hora de un evento, el anuncio **sale sin hora** (solo con la
-fecha) y la herramienta te avisa. No se detiene y tampoco adivina.
+fecha). Antes de hacer nada, Claude te pregunta por lo que no esté claro; y si le dices
+«sigue», tampoco adivina: solo usa lo que dicen esas fuentes.
 
 ## Lo que necesitas una sola vez
 
@@ -64,21 +65,28 @@ fecha) y la herramienta te avisa. No se detiene y tampoco adivina.
 
 Abre Claude Code en esta carpeta y pídele, por ejemplo:
 
-> Haz los anuncios de la semana del 21 de septiembre.
+> Haz los anuncios de esta semana.
 
-Claude sigue la guía `church-ads` (en `.claude/skills/church-ads/`). En palabras
-sencillas, esto es lo que pasa:
+No hace falta que lo escribas perfecto: Claude propone la semana y los calendarios, y te
+pregunta lo que no esté claro. Sigue la guía `church-ads` (en `.claude/skills/church-ads/`).
+En palabras sencillas, esto es lo que pasa:
 
-1. **Te pregunta** qué calendario y qué semana.
+1. **Propone la semana y los calendarios.** Si no le dices cuáles, toma la semana de hoy
+   (o la próxima, si es fin de semana) y los calendarios de la iglesia, y te lo confirma.
 2. **Trae los eventos** de esa semana y los ordena en `out/2026-W39/events.json`
    (`W39` es el número de la semana del año, de lunes a domingo).
-3. **Te dice qué eventos no tienen hora o lugar.** No es un error: esos anuncios salen
-   sin ese dato. Aquí puedes corregirlo (ver más abajo).
+3. **Te muestra los eventos y te pregunta lo que no está claro**, en un solo mensaje: qué
+   día, hora y lugar usará para cada uno y de dónde salió, y sus dudas (un evento sin hora,
+   una hora tomada del horario del culto, un lugar que no sabe, un título que no
+   entiende, un evento que parece interno). Respondes con pocas palabras, por ejemplo
+   «1 no, 2 solo fecha», o escribes «sigue» si todo está bien.
 4. **Crea el diseño de cada evento.**
 5. **Escribe la narración de la semana**: un solo guion (bienvenida, un evento tras
    otro y el cierre) y una sola voz que lo lee de corrido.
 6. **Revisa** que el guion no diga algo que no esté en el evento.
-7. **Genera los videos.**
+7. **Te muestra el guion antes de generar la voz**, porque es lo único que cuesta y
+   cambiar una palabra después obliga a generarla de nuevo. Si prefieres no verlo, díselo.
+8. **Genera los videos.**
 
 El resultado queda en `out/<año>-W<semana>/`:
 
@@ -109,27 +117,32 @@ En este orden, y se queda con la primera que encuentre:
 
 ## Corregir una hora, un lugar o el diseño
 
-Crea el archivo `overrides/<semana>.json` (por ejemplo, `overrides/2026-W39.json`). Cada
-evento se identifica por su nombre corto (su *slug*: minúsculas, sin tildes y con
-guiones, como `charla-familias`):
+Lo normal es decírselo a Claude, con tus palabras: «el ayuno es a las 8 a. m.», «ese
+evento solo con la fecha», «omite la reunión interna». Claude guarda tu respuesta y no te
+la vuelve a preguntar.
+
+Para quien administra: esas respuestas quedan en `overrides/<semana>.json` (por ejemplo,
+`overrides/2026-W39.json`), y también se puede editar a mano. Cada evento se identifica por
+su nombre corto (su *slug*: minúsculas, sin tildes y con guiones, como `charla-familias`):
 
 ```json
 {
   "charla-familias": { "hora": "19:00", "lugar": "Templo" },
+  "ayuno": { "hora": null },
   "reunion-interna": { "omitir": true }
 }
 ```
 
 | Clave | Valor | Efecto |
 |---|---|---|
-| `hora` | `"HH:MM"` en 24 horas | pone la hora; queda registrado que la dio una persona |
-| `lugar` | texto | pone el lugar |
+| `hora` | `"HH:MM"` en 24 horas, o `null` | `"HH:MM"` pone la hora (queda registrado que la dio una persona); `null` anuncia el evento **sin hora**, aunque el calendario, el título o el horario del culto tengan una |
+| `lugar` | texto, o `null` | el texto pone el lugar; `null` anuncia el evento **sin lugar**, incluso el habitual |
 | `modalidad` | `presencial` o `virtual` | si eliges `virtual`, pon también `plantilla: "virtual"` |
 | `plantilla` | `estandar`, `destacado` o `virtual` | `destacado` solo se usa por esta vía |
 | `omitir` | `true` | saca el evento de la semana |
 
-Después vuelve a pedirle a Claude que actualice la semana. Como la hora quedó en el
-registro, el guion y los diseños se rehacen con ella.
+Si editas el archivo a mano, vuelve a pedirle a Claude que actualice la semana. Como la
+hora quedó en el registro, el guion y los diseños se rehacen con ella.
 
 ## Dónde aparece el nombre de la iglesia
 
@@ -158,14 +171,14 @@ nombre y los datos de la iglesia nunca están escritos en el código.
 ElevenLabs cobra por caracteres del guion, y la voz de toda la semana se genera de una
 sola vez. Si el texto del guion no cambia, la herramienta reutiliza la locución que ya
 tiene y **no vuelve a cobrar**; cambiar una sola palabra sí genera un cobro nuevo, porque
-se vuelve a leer la semana completa. Por eso conviene dejar el guion bien revisado antes
-de generar la voz.
+se vuelve a leer la semana completa. Por eso Claude te muestra el guion y espera tu visto
+bueno antes de generar la voz.
 
 ## Problemas frecuentes
 
 | Qué ves | Qué significa |
 |---|---|
-| `[sin-hora]` ("has no time") | No se encontró hora. El anuncio sale con la fecha solamente. No es un error. |
+| `[sin-hora]` ("has no time") | No se encontró hora. El anuncio sale con la fecha solamente. No es un error: Claude ya te lo dijo en su primer mensaje y puedes darle la hora en tu respuesta. |
 | "voiceover unavailable" | No se pudo generar la voz (sin conexión o un problema con la cuenta). La semana sale **sin audio** y se avisa al final; la voz se puede volver a intentar después. |
 | Un `ERROR` al validar | Un guion o un diseño dice algo que el evento no respalda. Se corrige y se vuelve a validar; hasta entonces no se genera nada. |
 | La voz no dice el nombre de la iglesia, o el video sale sin la frase final | Faltan esas líneas en `church-info.md`. |

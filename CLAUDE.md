@@ -20,8 +20,10 @@ verified feasibility findings.
 1. **Never invent event facts.** Times, places, names and details may only come
    from the event card, `church-info.md`, or the user. A wrong time in a church
    ad sends real people to a locked door, so what is unknown stays *absent*: an
-   event whose time cannot be found is advertised by date only. That is a
-   non-blocking report to the user, not a stop. What does block is an integrity
+   event whose time cannot be found is advertised by date only. Doubts about an
+   event are asked once, in plain Spanish, at a checkpoint before anything is
+   made, each with a safe suggested answer; the user's "sigue" accepts only what
+   the sources say and never adds a fact. What does block is an integrity
    error: an `inferido` time source, a malformed time, a duplicate slug, an
    override that names no event. `events.json` carries `horaFuente` for exactly
    this; `scripts/validate.mjs` audits it before rendering.
@@ -116,7 +118,16 @@ tracked in this repo.
   that service's *start* time; Sundays have two named services, so they are
   matched by name. No match means no time. Human answers go in
   `overrides/<week>.json`, keyed by slug (`hora`, `lugar`, `modalidad`,
-  `plantilla`, `omitir`); see `.claude/skills/church-ads/SKILL.md`.
+  `plantilla`, `omitir`); `hora: null` and `lugar: null` announce the event
+  without it. The orchestrator writes that file from the user's answers; users
+  never edit it. See `.claude/skills/church-ads/SKILL.md`.
+- The users are non-technical church staff, so the orchestrator proposes instead
+  of asking for a perfect prompt: the week (current one Mon-Fri, the upcoming one
+  on Sat/Sun) and the calendars whose name contains the church's. It talks to them
+  in plain Spanish (`tú`; never slug, override, JSON or ISO week) in two
+  checkpoints: one before anything is made (the events with the time and place each
+  will use, and only the real doubts, each with a suggested answer) and one showing
+  the script before the paid voice. Details in the skill.
 - The church name reaches the audience in two places only. The voice says it once,
   in the weekly intro ("Bienvenidos a <name>"), and `validate.mjs` checks the intro
   against `church-info.md`. On screen it appears only through `Logo`: the logo image
