@@ -7,7 +7,7 @@ import { parseChurchInfo } from '../core/church-info.mjs';
 
 const fixture = (name) =>
   fileURLToPath(new URL(`./fixtures/${name}`, import.meta.url));
-const realWeek = JSON.parse(readFileSync(fixture('ii-2026-w39.json'), 'utf8'));
+const semanaEjemplo = JSON.parse(readFileSync(fixture('ejemplo-w39.json'), 'utf8'));
 // A fictional church: every church fact the code may use comes from here.
 const churchInfo = parseChurchInfo(readFileSync(fixture('church-info.md'), 'utf8'));
 
@@ -44,15 +44,15 @@ const run = (events, opts = {}) =>
   });
 const only = (events, opts) => run(events, opts).doc.events[0];
 
-test('the real II-2026 week yields three events, none with an invented time', () => {
+test('a week of three all-day events yields three events, none with an invented time', () => {
   const { doc } = normalizeWeek({
     week: '2026-W39',
-    calendars: [realWeek],
+    calendars: [semanaEjemplo],
     churchInfo,
     overrides: {},
   });
   assert.equal(doc.week, '2026-W39');
-  assert.equal(doc.calendar, 'IPUC Envigado Central II-2026');
+  assert.equal(doc.calendar, 'Iglesia Ejemplo II-2026');
   assert.equal(doc.timezone, 'America/Bogota');
   assert.equal(doc.semana.texto, 'Semana del 21 al 27 de septiembre');
   assert.equal(doc.semana.hablada, 'del veintiuno al veintisiete de septiembre');
