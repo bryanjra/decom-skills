@@ -127,7 +127,8 @@ writeFileSync(
   `${JSON.stringify({ text, alignment: { characters: a.characters, character_start_times_seconds: a.character_start_times_seconds, character_end_times_seconds: a.character_end_times_seconds } }, null, 2)}\n`,
 );
 EOF
-echo written```
+echo written
+```
 Expected: `written`.
 
 - [ ] **Step 3: Run the probe (spends about 200 characters of ElevenLabs quota; the spec pre-approves it)**
