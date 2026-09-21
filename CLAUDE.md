@@ -94,6 +94,12 @@ tracked in this repo.
   in `scripts/voice.json` (version-controlled). TTS goes through
   `scripts/tts.mjs` against the REST API — not the MCP connector — so that a past
   week re-renders identically.
+- Git has no user identity or credentials configured here. Commit with
+  `git -c user.name=Claude -c user.email=noreply@anthropic.com commit ...` (the
+  repo's history is authored that way) and push with
+  `git -c credential.helper='!gh auth git-credential' push ...`, which uses the
+  existing `gh` login; neither changes any git config. Do not commit on `main`:
+  branch first, merge only when asked.
 - `REMOTION_BROWSER_EXECUTABLE` — optional. Set it to an existing Chromium when
   Remotion cannot download its own (see `PLAN.md` § Environment). Render scripts
   fall back to Remotion's default when unset. On Linux, Remotion's own headless
@@ -155,6 +161,45 @@ tracked in this repo.
   ignores it.
 - Generated output lives in `out/<YYYY>-W<NN>/` and is disposable; never edit it
   by hand.
+
+## Decision: Claude reads the words (2026-09-21)
+
+The calendar titles and `church-info.md` are typed by non-technical staff, so no code
+parses them. Code does dates and numbers; the orchestrator reads the words and hands its
+reading to `normalize` as `out/<week>/lectura.json` (see the `church-ads` skill, *Reading
+the calendar and church-info.md*). It replaced `core/church-info.mjs` and
+`core/titulo.mjs`.
+
+**What it buys.** Staff can write `church-info.md` and titles any way they like. The real
+file already strained the parser (`8: 00 PM`, a service with no dash, two Saturday
+services, a "Culto" on a Saturday that no title matcher could place). Reading handles
+"Ayuno Evangelismo" as the Saturday fast and flags "Distrito 9" as possibly held
+elsewhere. Run on the real W39 calendar, the reading matched the old parser event for
+event, except the district event, which is the one that should differ.
+
+**What it costs.** Determinism, and any code-level proof that a time attributed to
+`church-info.md` is in it: nothing checks the reading against the file. The safety net is
+Checkpoint 1, where the person sees every time and place with its source, plus the audit
+that stays (`inferido`, malformed time, duplicate slug). A re-run may read the same file
+differently. The reading is rewritten each run, so an edit to `church-info.md` always
+applies, while the person's answers persist in `overrides/`. This trade is deliberate: it
+is a simple use case, and a person confirming a plain list is enough.
+
+**Lessons.**
+- Do not put a format on a file staff type. Do not bring back a parser, a regex or a
+  `Label: value` requirement for `church-info.md` or titles, and do not add citations,
+  quote verification or other traceability layers. A wrong reading is fixed in the
+  skill's instructions or by the person's answer, not in code.
+- Keep in code what a model gets wrong silently and code gets right: the week range, time
+  zones, all-day exclusive ends, slugs, the Spanish date and time wording.
+- A silent failure is worse than a loud one. `validate.mjs` errors when `events.json` has
+  no church name, so a forgotten `lectura.json` cannot skip the intro and outro checks; an
+  event id in the reading that names no event is an error (the ids are long and opaque, so
+  typos happen); a malformed `hora` in the reading is a problem and is ignored.
+- Do not unit-test the reasoning. Test what code does (the merge, the precedence, the
+  problems) and check the reading by running the flow on real calendar data and comparing.
+- Deleting beat adding: the change removed about 690 lines and added about 300, mostly
+  docs.
 
 ## Reference
 

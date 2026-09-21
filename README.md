@@ -75,8 +75,10 @@ En palabras sencillas, esto es lo que pasa:
 
 1. **Propone la semana y los calendarios.** Si no le dices cuáles, toma la semana de hoy
    (o la próxima, si es fin de semana) y los calendarios de la iglesia, y te lo confirma.
-2. **Trae los eventos** de esa semana y los ordena en `out/2026-W39/events.json`
-   (`W39` es el número de la semana del año, de lunes a domingo).
+2. **Trae los eventos** de esa semana, lee sus títulos junto con `church-info.md` (la hora
+   escondida en un título, el servicio al que pertenece, el lugar de siempre) y los ordena
+   en `out/2026-W39/events.json` (`W39` es el número de la semana del año, de lunes a
+   domingo).
 3. **Te muestra los eventos y te pregunta solo lo que no está claro**, en un solo mensaje.
    Primero, cada evento con su día, hora y lugar y de dónde salió cada dato; lo rutinario
    (un evento sin hora sale solo con la fecha; uno sin lugar propio sale en el lugar de
@@ -101,6 +103,7 @@ El resultado queda en `out/<año>-W<semana>/`:
 out/2026-W39/
   semana.mp4                 el video semanal completo
   events.json                los datos de la semana
+  lectura.json               lo que Claude entendió de los títulos y de church-info.md
   guion.md                   lo que dice la voz, de principio a fin
   voz.mp3                    la locución de toda la semana
   charla-familias/
@@ -128,6 +131,40 @@ Lo mismo vale para el lugar (el de la tarjeta, el que diga el título, o el luga
 siempre) y para el ministerio. Nada se da por bueno sin que lo veas: antes de hacer los
 anuncios, Claude te muestra cada evento con su hora y su lugar, y ahí corriges lo que esté
 mal.
+
+## Claude lee tus datos: por qué la lista del primer mensaje importa
+
+Ni `church-info.md` ni los títulos del calendario tienen un formato fijo: Claude los lee
+como los leería una persona. Eso te da libertad (escribe como quieras, con frases, con
+errores de tipeo, sin ordenar nada), y a cambio hay algo que debes saber: Claude puede
+entender algo distinto de lo que querías, y ningún programa compara lo que entendió con el
+archivo. **La revisión de verdad eres tú**, con la lista del primer mensaje (cada evento
+con su hora, su lugar y de dónde salió). Léela con calma antes de decir «sigue».
+
+- **Si algo está mal**, dilo con tus palabras («esa es a las 7 p. m.», «sin lugar»). Claude
+  lo corrige y no te lo vuelve a preguntar esa semana.
+- **Si el error es de fondo** (falta un servicio, el lugar de siempre cambió), corrígelo en
+  `church-info.md` y pídele a Claude que actualice la semana. Claude vuelve a leer el
+  archivo cada vez, así que un cambio ahí siempre se aplica.
+- **Si no sabe, no adivina**: te pregunta, o deja el evento solo con la fecha.
+
+Lo que aprendimos para que te entienda mejor:
+
+- De cada servicio fijo escribe el **día y la hora de inicio**. Si hay dos el mismo día
+  (por ejemplo, el culto y el ayuno del sábado), ponles **nombre**: así Claude sabe a cuál
+  se refiere un evento.
+- En el título de un evento escribe la hora con **a. m. o p. m.** («2pm», «7 de la
+  noche»). «A las 7» no dice si es de la mañana o de la tarde, y Claude te lo preguntará.
+- Un evento que quizá es en otro lugar (de distrito, de zona, una convención) se anuncia
+  **sin lugar** salvo que tú digas cuál es: un lugar equivocado manda a la gente a otra
+  puerta.
+- Un error de tipeo en `church-info.md` no lo rompe. Pero un dato que falta sí se nota:
+  lo que no esté escrito ahí no aparece en los anuncios.
+
+> Para quien administra: la lectura de Claude queda en `out/<semana>/lectura.json`. Se
+> rehace cada vez a partir del `church-info.md` de ese momento; no la edites. Lo que tú
+> respondes, en cambio, se guarda en `overrides/` y se conserva. Si falta ese archivo, la
+> validación se detiene: no dejará hacer los videos sin el nombre de la iglesia.
 
 ## Corregir una hora, un lugar o el diseño
 
