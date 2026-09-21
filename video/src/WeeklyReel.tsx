@@ -9,6 +9,7 @@ import {wipe} from '@remotion/transitions/wipe';
 import {AdScene} from './AdScene';
 import {IntroCard, OutroCard} from './cards';
 import {brand} from './brand/tokens';
+import {IglesiaProvider} from './church';
 import {reelFrames, transitionFrames} from './timing';
 import type {WeeklyReelProps} from './types';
 
@@ -42,30 +43,32 @@ export const calculateWeeklyReel: CalculateMetadataFunction<WeeklyReelProps> = a
 export const WeeklyReel: React.FC<WeeklyReelProps> = ({semanaTexto, iglesia, items, musicSrc, frames, voiceStartFrame, narration}) => {
   const timing = linearTiming({durationInFrames: transitionFrames(fps)});
   return (
-    <AbsoluteFill>
-      <TransitionSeries>
-        <TransitionSeries.Sequence durationInFrames={frames[0]}>
-          <IntroCard semanaTexto={semanaTexto} />
-        </TransitionSeries.Sequence>
-        {items.flatMap((item, i) => [
-          <TransitionSeries.Transition key={`t-${item.slug}`} presentation={presentationFor(i)} timing={timing} />,
-          <TransitionSeries.Sequence key={item.slug} durationInFrames={frames[i + 1]}>
-            <AdScene slug={item.slug} event={item.event} iglesia={item.iglesia} />
-          </TransitionSeries.Sequence>,
-        ])}
-        <TransitionSeries.Transition presentation={presentationFor(items.length)} timing={timing} />
-        <TransitionSeries.Sequence durationInFrames={frames[items.length + 1]}>
-          <OutroCard iglesia={iglesia} />
-        </TransitionSeries.Sequence>
-      </TransitionSeries>
-      {/* One voice over the whole reel: it starts after the lead-in and is never cut at a scene boundary. */}
-      {narration ? (
-        <Sequence from={voiceStartFrame}>
-          <Html5Audio src={staticFile(narration.audioSrc)} />
-        </Sequence>
-      ) : null}
-      {/* Music bed slot: pass musicSrc (a file under public/) to turn it on; null keeps the reel voice-only. */}
-      {musicSrc ? <Html5Audio src={staticFile(musicSrc)} volume={brand.audio.musicVolume} loop /> : null}
-    </AbsoluteFill>
+    <IglesiaProvider iglesia={iglesia}>
+      <AbsoluteFill>
+        <TransitionSeries>
+          <TransitionSeries.Sequence durationInFrames={frames[0]}>
+            <IntroCard semanaTexto={semanaTexto} />
+          </TransitionSeries.Sequence>
+          {items.flatMap((item, i) => [
+            <TransitionSeries.Transition key={`t-${item.slug}`} presentation={presentationFor(i)} timing={timing} />,
+            <TransitionSeries.Sequence key={item.slug} durationInFrames={frames[i + 1]}>
+              <AdScene slug={item.slug} event={item.event} iglesia={item.iglesia} />
+            </TransitionSeries.Sequence>,
+          ])}
+          <TransitionSeries.Transition presentation={presentationFor(items.length)} timing={timing} />
+          <TransitionSeries.Sequence durationInFrames={frames[items.length + 1]}>
+            <OutroCard iglesia={iglesia} />
+          </TransitionSeries.Sequence>
+        </TransitionSeries>
+        {/* One voice over the whole reel: it starts after the lead-in and is never cut at a scene boundary. */}
+        {narration ? (
+          <Sequence from={voiceStartFrame}>
+            <Html5Audio src={staticFile(narration.audioSrc)} />
+          </Sequence>
+        ) : null}
+        {/* Music bed slot: pass musicSrc (a file under public/) to turn it on; null keeps the reel voice-only. */}
+        {musicSrc ? <Html5Audio src={staticFile(musicSrc)} volume={brand.audio.musicVolume} loop /> : null}
+      </AbsoluteFill>
+    </IglesiaProvider>
   );
 };

@@ -168,8 +168,8 @@ copy that this pipeline cannot use, listed under each.
 The secondary copy in the references (a quotation, a purpose line, an "everyone is invited"
 line, a slogan) is not in `events.json`, so it is not on screen. The space it filled goes
 to the motif or to air. Nor does the logo go missing: it is mandatory (`brand/corporate-brand.md`).
-The church name appears only inside the logo (`design.md` § Facts), so a typed name such as
-ad5's "Envigado Central" is not reproduced either.
+The church name reaches the screen only through `Logo` (`design.md` § Facts), so a typed name
+such as ad5's "Envigado Central" is not reproduced either.
 
 ## 9. Report your level
 

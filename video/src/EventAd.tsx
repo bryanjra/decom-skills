@@ -3,6 +3,7 @@ import {AbsoluteFill, Html5Audio, Sequence, staticFile, useVideoConfig} from 're
 import type {CalculateMetadataFunction} from 'remotion';
 import {AdScene} from './AdScene';
 import {brand} from './brand/tokens';
+import {IglesiaProvider} from './church';
 import {sceneFrames, voiceSeconds} from './timing';
 import type {EventAdProps} from './types';
 
@@ -10,14 +11,16 @@ import type {EventAdProps} from './types';
 export const EventAd: React.FC<EventAdProps> = ({slug, event, iglesia, voz}) => {
   const {fps} = useVideoConfig();
   return (
-    <AbsoluteFill>
-      <AdScene slug={slug} event={event} iglesia={iglesia} />
-      {voz ? (
-        <Sequence from={Math.round(brand.motion.leadSeconds * fps)}>
-          <Html5Audio src={staticFile(voz.src)} trimBefore={Math.round(voz.fromSec * fps)} trimAfter={Math.round(voz.toSec * fps)} />
-        </Sequence>
-      ) : null}
-    </AbsoluteFill>
+    <IglesiaProvider iglesia={iglesia}>
+      <AbsoluteFill>
+        <AdScene slug={slug} event={event} iglesia={iglesia} />
+        {voz ? (
+          <Sequence from={Math.round(brand.motion.leadSeconds * fps)}>
+            <Html5Audio src={staticFile(voz.src)} trimBefore={Math.round(voz.fromSec * fps)} trimAfter={Math.round(voz.toSec * fps)} />
+          </Sequence>
+        ) : null}
+      </AbsoluteFill>
+    </IglesiaProvider>
   );
 };
 

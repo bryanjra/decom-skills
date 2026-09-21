@@ -55,8 +55,9 @@ Every fact on screen comes from `event` or `iglesia`, and nothing else exists.
 
 - Date: `event.fechaTexto`. Time: `event.horaTexto`. Place: `event.lugar`. Title:
   `event.titulo`. Audience tag: `event.ministerio`. Call to action:
-  `iglesia.llamadoAccion`. The church name is on screen only inside the logo: never
-  type it or render `iglesia.nombre` as text.
+  `iglesia.llamadoAccion`. The church name reaches the screen only through `Logo`:
+  never type it, and never read `iglesia.nombre` (by property or by destructuring) or call
+  `useIglesia()` in an ad. `validate.mjs` rejects all of these.
 - Never type a date, weekday, month, clock time or place into the file, even
   "just for the layout". Use the sample data in `video/src/sample.ts` to preview.
 - No time (`hora` is `null`): the time row is simply absent. Do not write "hora por
@@ -74,8 +75,10 @@ Every fact on screen comes from `event` or `iglesia`, and nothing else exists.
   are vendored under `brand/fonts/` and registered once by `brand/fonts.ts`; do not
   import web fonts.
 - Spacing: `brand.space.*`. The logo is drawn by `Logo` (`CornerLogo` in the left-aligned
-  layouts), which renders nothing while `brand.logo` is null. Keep it on a flat
-  field: no shapes behind it, nothing over it.
+  layouts). While `brand.logo` is null, `Logo` draws the church's name from `church-info.md`
+  as a wordmark instead, so a church without a logo still names itself on screen; it finds
+  the name itself, an ad passes it nothing. Keep it on a flat field: no shapes behind it,
+  nothing over it.
 - Colors and logo are the IPUC's official identity; `brand/corporate-brand.md` holds
   the logo, naming and layout rules (flat background under the logo, nothing over it,
   full name never replaced by "IPUC"). The fonts are still placeholders. Design

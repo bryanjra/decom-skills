@@ -4,7 +4,8 @@
 //
 //   node scripts/validate.mjs <week> [slug ...] [--narracion]
 //
-// Per event: video/src/ads/<slug>.tsx exists and obeys the source rules. With no
+// Per event: video/src/ads/<slug>.tsx exists and obeys the source rules (facts from the
+// record, brand from tokens, the church name only through the Logo). With no
 // slugs, or with --narracion: the week's script (out/<week>/guion.md) is faithful to
 // the record and voz.mp3 is present (absent is a notice: the video is then silent).
 // A designer validating only its own slug is not asked for a script it does not write.
@@ -47,7 +48,7 @@ for (const slug of seleccion) {
     continue;
   }
   const ad = join(ROOT, 'video', 'src', 'ads', `${slug}.tsx`);
-  if (existsSync(ad)) juntar(checkAdSource(readFileSync(ad, 'utf8')), slug);
+  if (existsSync(ad)) juntar(checkAdSource(readFileSync(ad, 'utf8'), doc.iglesia), slug);
   else todos.errores.push({ regla: 'sin-componente', slug, mensaje: `missing ${ad}` });
 }
 

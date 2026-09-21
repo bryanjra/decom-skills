@@ -20,7 +20,8 @@ Recurring services must sit under a heading that contains "Servicios" or
 
 <!--
   Nombre               Church name, said once in the voiceover. On screen the logo
-                       carries the name, so it is never drawn as text.
+                       carries the name; only a brand with no logo (brand.logo in
+                       tokens.ts is null) draws it, as a wordmark.
   Direccion            Address, available to the outro card.
   Lugar por defecto    Where events happen when the calendar card names no place.
                        Without it, an event with no place on its card has none.

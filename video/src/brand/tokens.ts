@@ -39,14 +39,14 @@ export const fontFiles = [
 ] as const;
 
 /**
- * Path under public/ of the church logo (SVG preferred), or null to show the name as a wordmark.
+ * Path under public/ of the church logo (SVG preferred), or null to show church-info.md's name as a wordmark.
  * The full-color version for dark backgrounds: white verse and a white reserve line around the ring.
  */
 export const logo: string | null = 'brand/logo/IPUC_COLOR para fondo oscuro.png';
 
 /**
- * Logo height at the 1080 base, scaled by the layout unit. The logo is the only place the
- * church name appears on screen, so it has to be large enough for the ring lettering to read.
+ * Logo height at the 1080 base, scaled by the layout unit. The logo is where the church name
+ * appears on screen, so it has to be large enough for the ring lettering to read.
  */
 export const logoHeight = 150;
 

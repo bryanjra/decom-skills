@@ -1,6 +1,7 @@
 import React from 'react';
 import {AbsoluteFill, Easing, Img, interpolate, staticFile, useCurrentFrame} from 'remotion';
 import {alpha, brand} from '../brand/tokens';
+import {useIglesia} from '../church';
 import {useLayout} from '../layout';
 import type {EventRecord, Iglesia} from '../types';
 
@@ -69,14 +70,22 @@ export const Backdrop: React.FC<{zoom?: boolean}> = ({zoom = false}) => {
 };
 
 /**
- * The church logo, alone. It carries the church name, so the name is never typed on screen
- * or read from church-info.md. Renders nothing while `brand.logo` is null. Keep everything
- * else clear of it: no shapes behind, nothing over it (brand/corporate-brand.md § 3).
+ * The church's mark, alone, and the only way its name reaches the screen: an ad never types the
+ * name or renders `iglesia.nombre` itself. The logo image carries the name. A brand with no logo
+ * (`brand.logo` is null) gets the name from church-info.md, via IglesiaProvider, as a wordmark
+ * instead; with no name either, nothing is drawn. Keep everything else clear of it: no shapes
+ * behind, nothing over it (brand/corporate-brand.md § 3).
  */
 export const Logo: React.FC = () => {
   const {u} = useLayout();
-  if (!brand.logo) return null;
-  return <Img src={staticFile(brand.logo)} style={{display: 'block', height: brand.logoHeight * u}} />;
+  const nombre = useIglesia()?.nombre;
+  if (brand.logo) return <Img src={staticFile(brand.logo)} style={{display: 'block', height: brand.logoHeight * u}} />;
+  if (!nombre) return null;
+  return (
+    <div style={{maxWidth: brand.logoHeight * 5 * u}}>
+      <Headline text={nombre} size={brand.type.subtitle} align="center" />
+    </div>
+  );
 };
 
 /**
