@@ -226,3 +226,6 @@ node_modules/
 !/video/public/music/.gitkeep
 .remotion/
 *.tsbuildinfo
+
+# examples
+ad-examples
