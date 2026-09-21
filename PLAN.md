@@ -45,8 +45,8 @@ sample:
 - `Integración maestros Adolescentes` — has a real start/end time
 - **No event** in either calendar has `location` or `description` populated
 
-So the pipeline reconstructs time and place from the event card, then the title,
-then `church-info.md`; where none of them knows, the ad is made without it. It must
+So the pipeline reconstructs time and place from the event card (code), then the title
+and `church-info.md` (read by the orchestrator); where none of them knows, the ad is made without it. It must
 never guess (§ 4, "Missing schedule").
 
 ---
@@ -92,7 +92,7 @@ brand/
   fonts/                         vendored font files for deterministic renders
 church-info.md                   this church's reference data: name, address, default
                                  place, ministries, call to action, recurring services
-church-info.example.md           documents the format, for reuse by another church
+church-info.example.md           suggests what to say (free text, read by the orchestrator)
 overrides/<week>.json            human answers keyed by slug: hora, lugar, modalidad,
                                  plantilla, omitir
 .env                             ELEVEN_LABS_API_KEY, ELEVEN_LABS_VOICE_ID (git-ignored)
@@ -106,7 +106,7 @@ video/                           Remotion project (16:9, 1920x1080, 30fps)
     WeeklyReel.tsx               TransitionSeries of all events
   public/audio/semana.mp3        the week's voiceover, staged by render.mjs
 scripts/
-  core/                          tested logic (spanish, titulo, church-info, normalize,
+  core/                          tested logic (spanish, normalize,
                                  audit, guion, narracion, narracion-check, escenas,
                                  ad-source, tts, project, registry, render-plan,
                                  stage-audio)
@@ -186,8 +186,8 @@ plan.
 3. An ElevenLabs Spanish voice ID (Latin-American, `eleven_multilingual_v2`),
    kept in `.env` as `ELEVEN_LABS_VOICE_ID`; the model and voice settings are pinned
    in `scripts/voice.json`. The MCP connector is a good way to audition candidates.
-4. The church's reference data in `church-info.md` (format:
-   `church-info.example.md`): Nombre, Direccion, Lugar por defecto, Ministerios,
+4. The church's reference data in `church-info.md` (free text the orchestrator reads;
+   `church-info.example.md` suggests what to say): Nombre, Direccion, Lugar por defecto, Ministerios,
    Llamado a la accion, Despedida (optional, added 2026-09-21), and the recurring services.
 
 ### Phase 1 — Scaffold + brand system
@@ -203,11 +203,13 @@ across the column), plus a real clip: 1920x1080, 30 fps, h264 + AAC.*
 ### Phase 2 — Calendar to `events.json`
 Normalizer handling the real mess found in the calendars:
 - all-day vs. timed events
-- regex extraction of times hiding in titles (`2pm ...`)
-- ministry prefix `(Jóvenes)` to audience tag, which drives template and tone
-- place defaults to the temple; `virtual` / `zoom` / `online` in the title
-  switches to the virtual template
-- merge recurring schedules from `church-info.md`
+- **reading the words is the orchestrator's job, not the code's** (decided 2026-09-21):
+  the titles and `church-info.md` are typed by non-technical staff, so no regex or
+  parser reads them. The orchestrator finds the times hiding in titles (`2pm ...`), the
+  ministry (a `(Jóvenes)` prefix or a ministry word), `virtual` / `zoom` / `online`,
+  the default place and the recurring schedules, and writes them to
+  `out/<week>/lectura.json`; `normalize` merges that with what the card carries, and
+  Checkpoint 1 is the only gate on the reading
 - **non-blocking report:** an event still missing a time is listed and made without
   one (date only). Only integrity errors block: an `inferido` time source, a
   malformed time, a duplicate slug, an override that names no event
@@ -253,9 +255,9 @@ Full end-to-end on a real week; `README.md` for the church team. *The Spanish
 | Output format | 16:9 1920x1080 for everything. Templates built to re-layout to 9:16 later without a rewrite. |
 | Deliverables | Per event: image, audio, clip. Plus one combined weekly video. |
 | Calendar | "IPUC Envigado Central II-2026". Sample week 2026-W39 has three all-day events: Oracion virtual (Mon 21), Refam juvenil (Wed 23), Charla familias (Fri 25). |
-| Church facts | Reference data, not code, so another church can reuse the tool. `church-info.md` fields: Nombre, Direccion, Lugar por defecto, Ministerios (comma list), Llamado a la accion, Despedida (optional), and the "Servicios recurrentes" section. The time zone comes from the calendar's own `timeZone`. Tests use a fictional church ("Iglesia Ejemplo"); `church-info.example.md` documents the format. |
+| Church facts | Reference data, not code, so another church can reuse the tool. `church-info.md` is free text the orchestrator reads (Nombre, Direccion, Lugar por defecto, Ministerios, Llamado a la accion, Despedida (optional) and the recurring services are what it looks for; no code parses it). The time zone comes from the calendar's own `timeZone`. Tests use a fictional church ("Iglesia Ejemplo"); `church-info.example.md` suggests what to say. |
 | Missing location | The place is the card's, else `Lugar por defecto` from `church-info.md`; "Zoom"/"virtual" in the title makes it a virtual event. With none of these the event has no place and the ad omits it. No address or phone needed. |
-| Missing schedule | **Supersedes "stop and ask".** Time is taken from the card, then the title, then `church-info.md`. An untimed event on a service day inherits that service's *start* time; a day with several services is matched by the service's name in the title. If nothing matches, the ad is made without a time (date only): nothing is guessed and nothing blocks. What is doubtful is asked once, in plain Spanish, at Checkpoint 1 (step 4 of the `church-ads` skill), and the person's "sigue" accepts only what the sources say: it drops a doubtful time, drops the place of an event that may be held elsewhere (a wrong place sends people to the wrong door; a missing one does not), and leaves out an event whose title nobody has explained (publishing cannot be undone; «anúncialo» brings it back). |
+| Missing schedule | **Supersedes "stop and ask".** Time is taken from the card, then the title, then `church-info.md`. An untimed event on a service day inherits that service's *start* time; on a day with several services the orchestrator picks the one the title names. If nothing matches, the ad is made without a time (date only): nothing is guessed and nothing blocks. What is doubtful is asked once, in plain Spanish, at Checkpoint 1 (step 4 of the `church-ads` skill), and the person's "sigue" accepts only what the sources say: it drops a doubtful time, drops the place of an event that may be held elsewhere (a wrong place sends people to the wrong door; a missing one does not), and leaves out an event whose title nobody has explained (publishing cannot be undone; «anúncialo» brings it back). |
 | What blocks | Integrity errors only: an `inferido` time source, a malformed time, a duplicate slug, an override that names no event. |
 | Human answers | `overrides/<week>.json`, keyed by slug: `hora`, `lugar`, `modalidad`, `plantilla`, `omitir`; the orchestrator writes it from the person's answers. `hora: null` and `lugar: null` announce the event without a time or place, even one the sources gave. `destacado` is chosen only this way. |
 | Harness | Claude Code CLI, so the pipeline can run over SSH on a Linux VM rather than only at a desk. |

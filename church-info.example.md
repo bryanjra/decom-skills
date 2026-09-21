@@ -1,16 +1,23 @@
 # Church reference data — example
 
-Copy this file to `church-info.md` and fill in your church's facts. The
-pipeline reads `church-info.md` and nothing about any specific church is
-written in the code. Every field is optional: anything left out is simply
-absent from the ads, never guessed.
+Copy this file to `church-info.md` and fill in your church's facts. Claude reads it
+as plain text, so there is no format to get right: write it however is natural to you,
+in lists, sentences or a table, and typos are fine. Nothing about any specific church is
+written in the code. Anything you leave out is simply absent from the ads, never guessed.
 
-Format: one `Label: value` per line under any heading (indentation and a
-missing space after `#` are tolerated; labels ignore case and accents).
-Recurring services must sit under a heading that contains "Servicios" or
-"Horarios".
+What is useful to say:
 
-#Contact info
+- The church's name (Claude says it once in the voiceover; on screen the logo carries it).
+- The address.
+- The usual place where events happen, when the calendar card names none.
+- The ministries or groups (Jóvenes, Familias...), so events can be tagged with their audience.
+- The closing words of the weekly video, e.g. "Te esperamos", and an optional blessing
+  after them, e.g. "Dios te bendiga".
+- The recurring services: the day, the start time, and its name if there are two on one
+  day. Claude uses them for an event that has no time on the calendar.
+
+Example:
+
     Nombre: Iglesia Ejemplo
     Direccion: Calle 1 #2-3, Ciudad Ejemplo
     Lugar por defecto: Salón Principal
@@ -18,30 +25,11 @@ Recurring services must sit under a heading that contains "Servicios" or
     Llamado a la accion: Te esperamos
     Despedida: Dios te bendiga
 
-<!--
-  Nombre               Church name, said once in the voiceover. On screen the logo
-                       carries the name; only a brand with no logo (brand.logo in
-                       tokens.ts is null) draws it, as a wordmark.
-  Direccion            Address, available to the outro card.
-  Lugar por defecto    Where events happen when the calendar card names no place.
-                       Without it, an event with no place on its card has none.
-  Ministerios          Comma-separated audiences. A calendar title that contains
-                       exactly one of these words is tagged with that ministry.
-                       A "(Ministerio) - Título" prefix is always understood.
-  Llamado a la accion  The church's closing call to action; said once, in the weekly outro.
-  Despedida            Optional blessing said right after it (e.g. "Dios te bendiga").
-                       Without it, the outro is the call to action alone.
--->
-
-# Servicios recurrentes
+    Servicios recurrentes
     Martes: 7:00 PM - 8:30 PM
     Jueves: 7:00 PM - 8:30 PM
     Domingos (1er servicio - Culto de adoración): 9:00 AM - 10:30 AM
     Domingos (2do servicio - Escuela dominical): 11:00 AM - 12:30 PM
 
-<!--
-  Only the START time is used. An untimed calendar event on one of these
-  weekdays takes that service's time. A name in parentheses (after the dash)
-  lets two services on the same day be told apart by the event title; an
-  untimed event on such a day that matches neither name gets no time.
--->
+Only the start time of a service matters. If two services share a day, Claude tells them
+apart by the event's title, and asks you when it cannot.

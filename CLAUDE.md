@@ -46,7 +46,8 @@ verified feasibility findings.
 6. **Church facts are reference data, never code.** Name, address, default
    place, ministries, call to action, blessing (`Despedida`) and recurring
    services come from
-   `church-info.md` (format: `church-info.example.md`); the time zone comes from
+   `church-info.md`, free text that the orchestrator reads (no code parses it;
+   `church-info.example.md` only suggests what to say); the time zone comes from
    the calendar itself. Nothing about a specific congregation is written in
    `scripts/` or `video/src/` (the organization's brand is not a congregation's
    fact), so another IPUC congregation reuses the tool by swapping only
@@ -113,10 +114,15 @@ tracked in this repo.
   be re-rendered from `events.json` alone.
 - Slugs are lowercase, accent-stripped, hyphenated: `Charla familias` ->
   `charla-familias`.
-- An event's time is taken from, in order: the calendar card, the title
-  (`2pm ...`), then `church-info.md`. An untimed event on a service day inherits
-  that service's *start* time; a day with several services is matched by the
-  service's name in the title. No match means no time. Human answers go in
+- Code does dates and numbers; the orchestrator reads the words. The calendar
+  titles and `church-info.md` are typed by non-technical staff, so no code parses
+  them: after a first `normalize` run the orchestrator writes
+  `out/<week>/lectura.json` (the church facts, and per event its clean title, time,
+  place, ministry and modality, each with its source) and runs `normalize` again.
+  Checkpoint 1 is the only gate on that reading. An event's time is taken from, in
+  order: the calendar card (code), the title (`2pm ...`), then `church-info.md` (an
+  untimed event on a service day takes that service's *start* time; a day with
+  several services, the one the title names). No match means no time. Human answers go in
   `overrides/<week>.json`, keyed by slug (`hora`, `lugar`, `modalidad`,
   `plantilla`, `omitir`); `hora: null` and `lugar: null` announce the event
   without it. The orchestrator writes that file from the user's answers; users

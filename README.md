@@ -29,17 +29,19 @@ fecha). Antes de hacer nada, Claude te pregunta por lo que no esté claro; y si 
 1. **Claude Code**, abierto en esta carpeta y con acceso al Google Calendar de la
    iglesia.
 2. **`church-info.md`**: los datos de tu iglesia. Copia `church-info.example.md` y
-   llénalo. Estos campos son opcionales, pero lo que falte no aparecerá en los anuncios:
+   llénalo. **No hay un formato que cumplir**: Claude lo lee como texto y entiende listas,
+   frases o tablas, y no pasa nada por un error de tipeo. Todo es opcional, pero lo que
+   falte no aparecerá en los anuncios. Esto es lo que conviene contar:
 
    | Campo | Para qué sirve |
    |---|---|
    | `Nombre` | El nombre de tu congregación (por ejemplo, «IPUC Envigado Central»). Se dice una vez, en la bienvenida de la voz de la semana; en pantalla el nombre va en el logo, nunca escrito aparte |
    | `Direccion` | Aparece en el cierre del video |
    | `Lugar por defecto` | Dónde es un evento cuando su tarjeta no dice nada |
-   | `Ministerios` | Lista separada por comas (Jóvenes, Familias...) para etiquetar el público |
+   | `Ministerios` | Los grupos de la iglesia (Jóvenes, Familias...) para etiquetar el público |
    | `Llamado a la accion` | La frase con la que termina el video de la semana (por ejemplo, "Te esperamos") |
    | `Despedida` | Opcional: lo que se dice justo después (por ejemplo, "Dios te bendiga") |
-   | `Servicios recurrentes` | Los horarios fijos de la semana; de aquí sale la hora de un evento sin hora |
+   | Servicios recurrentes | Los horarios fijos de la semana (el día y la hora de inicio, y el nombre si hay dos el mismo día); de aquí sale la hora de un evento sin hora |
 
 3. **Una cuenta de ElevenLabs de pago** y una voz elegida. Guarda los datos en un archivo
    `.env` en esta carpeta (nunca lo compartas ni lo subas a ningún sitio):
@@ -111,15 +113,21 @@ corrección) y vuelve a generar. Nunca edites esos archivos a mano.
 
 ## Cómo se decide la hora de un evento
 
-En este orden, y se queda con la primera que encuentre:
+Claude lee el evento del calendario junto con `church-info.md` y se queda con la primera
+fuente que dé la hora, en este orden:
 
 1. La hora de la tarjeta del evento en el calendario.
 2. Una hora escrita en el título (por ejemplo, `2pm ...`).
 3. `church-info.md`: si el evento no tiene hora y cae en un día con servicio fijo, toma la
-   hora de **inicio** de ese servicio. Si ese día hay dos o más servicios (los domingos,
-   por ejemplo), se elige por el nombre del servicio que aparezca en el título del
-   evento; si el título no nombra ninguno, no se asigna hora.
+   hora de **inicio** de ese servicio. Si ese día hay dos o más servicios (los sábados o
+   los domingos, por ejemplo), Claude entiende por el título de cuál se trata («Ayuno...»
+   es el ayuno, «Culto...» es el culto); si no puede saberlo, no adivina y te pregunta.
 4. Si nada de lo anterior aplica, **no hay hora**.
+
+Lo mismo vale para el lugar (el de la tarjeta, el que diga el título, o el lugar de
+siempre) y para el ministerio. Nada se da por bueno sin que lo veas: antes de hacer los
+anuncios, Claude te muestra cada evento con su hora y su lugar, y ahí corriges lo que esté
+mal.
 
 ## Corregir una hora, un lugar o el diseño
 
@@ -161,7 +169,7 @@ hora quedó en el registro, el guion y los diseños se rehacen con ella.
 ## Usarlo en otra congregación de la IPUC
 
 Copia el proyecto y llena `church-info.md` con los datos de esa congregación, a partir de
-`church-info.example.md`. No hay nada que cambiar en `scripts/` ni en `video/src/`: el
+`church-info.example.md` (en el formato que quieras). No hay nada que cambiar en `scripts/` ni en `video/src/`: el
 nombre y los datos de la iglesia nunca están escritos en el código.
 
 ## Antes de publicar, revisa siempre

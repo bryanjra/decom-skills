@@ -1,34 +1,29 @@
 #!/usr/bin/env node
-// Raw calendar responses + church-info.md (+ optional overrides) -> out/<week>/events.json
+// Raw calendar responses + Claude's reading (+ optional overrides) -> out/<week>/events.json
 //
-//   node scripts/normalize.mjs --week 2026-W39 [--church-info path] [--overrides path] [raw.json ...]
+//   node scripts/normalize.mjs --week 2026-W39 [--overrides path] [raw.json ...]
 //
 // Raw files default to out/<week>/raw/*.json (the list_events responses saved
-// verbatim). Exit 0: events.json is approved for the next step. Exit 2: it was
-// written but has errors that must be fixed first. A missing time is a notice,
-// not an error: that ad is made without a time.
+// verbatim). Claude's reading of the titles and church-info.md is out/<week>/lectura.json;
+// without it the events carry only what the calendar cards say (the first pass, which
+// Claude reads to write that file). Exit 0: events.json is approved for the next step.
+// Exit 2: it was written but has errors that must be fixed first. A missing time is a
+// notice, not an error: that ad is made without a time.
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { ROOT, parseArgs, printIssues, weekDir } from './core/project.mjs';
-import { parseChurchInfo } from './core/church-info.mjs';
 import { normalizeWeek } from './core/normalize.mjs';
 import { auditEvents } from './core/audit.mjs';
 
 const { flags, positional } = parseArgs(process.argv.slice(2));
 const week = flags.week;
 if (!week || week === true) {
-  console.error('usage: node scripts/normalize.mjs --week 2026-W39 [--church-info path] [--overrides path] [raw.json ...]');
+  console.error('usage: node scripts/normalize.mjs --week 2026-W39 [--overrides path] [raw.json ...]');
   process.exit(1);
 }
 
 const dir = weekDir(week);
-const churchInfoPath = resolve(flags['church-info'] || join(ROOT, 'church-info.md'));
-if (!existsSync(churchInfoPath)) {
-  console.error(`church-info.md not found at ${churchInfoPath}.\nCopy church-info.example.md to church-info.md and fill in your church's facts.`);
-  process.exit(1);
-}
-
 const rawDir = join(dir, 'raw');
 const rawFiles = positional.length
   ? positional.map((p) => resolve(p))
@@ -40,13 +35,16 @@ if (!rawFiles.length) {
   process.exit(1);
 }
 
+const lecturaPath = join(dir, 'lectura.json');
+const lectura = existsSync(lecturaPath) ? JSON.parse(readFileSync(lecturaPath, 'utf8')) : {};
+
 const overridesPath = flags.overrides ? resolve(flags.overrides) : join(ROOT, 'overrides', `${week}.json`);
 const overrides = existsSync(overridesPath) ? JSON.parse(readFileSync(overridesPath, 'utf8')) : {};
 
 const { doc, problemas } = normalizeWeek({
   week,
   calendars: rawFiles.map((f) => JSON.parse(readFileSync(f, 'utf8'))),
-  churchInfo: parseChurchInfo(readFileSync(churchInfoPath, 'utf8')),
+  lectura,
   overrides,
 });
 const { errores, avisos } = auditEvents(doc);
@@ -62,6 +60,7 @@ for (const e of doc.events) {
 }
 if (doc.descartados.length) console.log(`  dropped: ${doc.descartados.map((d) => `${d.titulo} [${d.motivo}]`).join('; ')}`);
 console.log(`wrote ${salida}`);
+if (!existsSync(lecturaPath)) console.log(`no ${lecturaPath} yet: the events carry only what the calendar cards say`);
 
 for (const p of problemas) console.error(`ERROR  [input] ${p}`);
 printIssues({ errores, avisos });

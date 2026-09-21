@@ -29,8 +29,9 @@ anything to them.
 2. All audience-facing text is Spanish (Colombia), addressing the reader as `tú`.
 3. All video is 16:9, 1920x1080, 30 fps.
 4. The church's facts (name, address, default place, ministries, call to action,
-   blessing (`Despedida`), recurring services) live in `church-info.md`, never in code. See
-   `church-info.example.md` for the format.
+   blessing (`Despedida`), recurring services) live in `church-info.md`, never in code. It is
+   free text written by non-technical staff: you read it, see *Reading the calendar and
+   church-info.md*.
 
 ## Talking to the person
 
@@ -89,22 +90,24 @@ to `out/<week>/raw/<name>.json`. One file per calendar. The normalizer also drop
 anything outside the week, so a slightly wide window is safe. If the person drops a
 calendar at Checkpoint 1, delete its file from `raw/` and run step 3 again.
 
-### 3. Normalize
+### 3. Normalize, read, normalize
 
 ```bash
 node scripts/normalize.mjs --week 2026-W39
 ```
 
-This writes `out/<week>/events.json` and prints one line per event. The time of
-each event comes from, in order: the card, the title (`2pm ...`), `church-info.md`
-(an untimed event on a service day takes that service's start time; a day with
-several services is matched by the service's name in the title, and no match means
-no time), and otherwise it has none. An
-`overrides/<week>.json` that already exists is applied on top (see Overrides).
+The first run writes `out/<week>/events.json` from the calendar alone: dates, slugs, and
+the time and place the card itself carries. What is left is words: the clean title, a time
+in the title or given by the church's schedule, the place, the ministry, whether the event
+is virtual. Reading words is your job, not the code's. Read `events.json` (each event's
+`eventId`, day and raw title) together with `church-info.md`, write
+`out/<week>/lectura.json` as *Reading the calendar and church-info.md* says, and run the
+same command again. It merges your reading, then an existing `overrides/<week>.json` on top
+(see Overrides).
 
 - Exit **2** means integrity errors: a malformed time, an untrusted `horaFuente`
-  (`inferido`), a duplicate slug, an override that names no event. Fix the cause
-  (an override, the raw file, `church-info.md`) and run it again. Do not continue.
+  (`inferido`), a duplicate slug, an override or reading that names no event. Fix the
+  cause (an override, the raw file, `lectura.json`) and run it again. Do not continue.
 - Exit **0** approves the file for the next step.
 
 ### 4. Checkpoint 1: confirm the week and ask about what is unclear
@@ -139,10 +142,10 @@ gets one.
      service (its title is just the service's name).
 3. **Only the real doubts**, numbered in the order of the week, each with a suggested
    answer; if there are none, leave this part out. The doubts:
-   - **A time with no AM/PM** in the title (the `horaNota` says the title was not used):
+   - **A time with no AM/PM** in the title (you left `hora` out of the reading):
      "¿2 de la mañana o de la tarde?" Suggested: date only.
-   - **A day with two services** where the title names neither (the `horaNota` lists
-     them): which one. Suggested: date only.
+   - **A day with two services** where the title names neither (you left `hora` out):
+     which one. Suggested: date only.
    - **An all-day event that took a service time** (`horaFuente: church-info.md`): does it
      really start then? Ask it unless the event is plainly the service itself; a retreat,
      a camp, an event of several days, or a service's name with something added
@@ -266,6 +269,56 @@ again; the command is `node scripts/tts.mjs --week <week>`), the designers' `avi
 in plain words, and any word the voice may mispronounce. Always end with the reminder to
 check every time and date in the images.
 
+## Reading the calendar and church-info.md
+
+`church-info.md` and the calendar titles are typed by non-technical staff: any layout,
+typos, prose instead of lists. Read them as a person would and never ask the staff to
+reformat anything. Reading is judgment, so Checkpoint 1 is its only gate: everything you
+read is shown there with where it came from. Write it fresh on every run, from the current
+`church-info.md`; the week's folder is disposable.
+
+```json
+{
+  "iglesia": {"nombre": "...", "direccion": "...", "lugarPorDefecto": "...", "llamadoAccion": "...", "despedida": "..."},
+  "eventos": {
+    "<eventId, copied exactly>": {
+      "titulo": "Ecos del Futuro", "hora": "14:00", "horaFuente": "titulo",
+      "lugar": "Templo", "lugarFuente": "church-info.md", "ministerio": "Jóvenes",
+      "modalidad": "virtual", "horaNota": "..."
+    }
+  }
+}
+```
+
+Every key is optional except `iglesia.nombre` (`validate.mjs` errors without it, so a
+forgotten file cannot silently skip the intro and outro checks). Leave out what the sources
+do not say; the code never fills it in.
+
+- **`iglesia`**: as `church-info.md` says it. A line the file does not have stays out.
+- **`titulo`**: the title without the parts that have their own field (a time such as
+  `2pm`, a `(Ministerio) -` prefix), wording and spelling otherwise as written. Leave it
+  out to keep the calendar's title.
+- **`hora`** (24 h `HH:MM`) **and `horaFuente`**: only when the card has no time (the card
+  always wins). `titulo` when the title states it with AM/PM or the period of the day
+  (`2pm`, "a las 7 de la noche"); `church-info.md` when a recurring service of that weekday
+  is plainly the event's, and then its *start* time. On a day with two services, the one
+  the title names or clearly is. A bare "7:30" or "a las 7", or an event that may not start
+  at the service time (a retreat, a camp, several days, a service's name with something
+  added), is not a time: leave `hora` out and ask at Checkpoint 1. Never write
+  `inferido`; it blocks. `horaNota` says in plain words why there is no time, if useful.
+- **`lugar` and `lugarFuente`**: only when the card has no place. `titulo` for a virtual
+  event ("Zoom" or "Virtual"); `church-info.md` for the default place, when nothing
+  suggests the event is elsewhere. If the title suggests elsewhere (a district or zone
+  event, a convention, another church), leave `lugar` out and ask at Checkpoint 1.
+- **`modalidad`**: `virtual` when the title says Zoom, virtual or online; otherwise omit.
+- **`ministerio`**: from a `(Ministerio) -` prefix, or the church's ministry the title
+  names; omit when there is none or it is ambiguous.
+
+Cover every event. One you skip is announced with its calendar title and card facts alone,
+and a `eventId` that names no event is an error. The limit is hard rule 1: a fact you
+cannot point to on the card, in the title or in `church-info.md` stays out, and a doubt
+becomes a numbered question at Checkpoint 1 with the safe suggestion.
+
 ## Overrides
 
 Human answers live in `overrides/<week>.json`, keyed by slug, and are applied by
@@ -304,6 +357,7 @@ follows `events.json` fails `validate.mjs`.
 ```
 out/<week>/
   raw/<calendar>.json      calendar response, verbatim
+  lectura.json             your reading of the titles and church-info.md, written by you
   events.json              the contract
   guion.md                 the week's narration, written by the orchestrator
   voz.mp3, voz.json, voz.alineacion.json   the one voiceover and its per-character timing

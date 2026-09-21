@@ -1,7 +1,8 @@
-// Turns raw calendar events plus church-info.md into the events.json contract.
-// Every time and place carries its provenance, and nothing is guessed: what
-// cannot be established from the card, the title, church-info.md or an explicit
-// override stays null and is reported.
+// Turns raw calendar events plus Claude's reading of them into the events.json
+// contract. Code does the dates and numbers here; Claude reads the words (the titles
+// and church-info.md) and hands that over as lectura.json. Every time and place
+// carries its provenance, and nothing is guessed: what neither the card, the reading
+// nor an explicit override establishes stays null.
 
 import {
   addDays,
@@ -16,8 +17,6 @@ import {
   slugify,
   weekRange,
 } from './spanish.mjs';
-import { findService } from './church-info.mjs';
-import { parseTitulo } from './titulo.mjs';
 
 const PLANTILLAS = ['destacado', 'estandar', 'virtual'];
 
@@ -56,30 +55,6 @@ function leerFechas(raw, zonaCalendario) {
     return { fecha, fechaFin: null, horaTarjeta: hora };
   }
   return null;
-}
-
-function resolverHora({ horaTarjeta, parsed, fecha, churchInfo }) {
-  if (horaTarjeta) return { hora: horaTarjeta, fuente: 'calendario' };
-  if (parsed.hora) return { hora: parsed.hora, fuente: 'titulo' };
-
-  const dia = diaSemana(fecha);
-  if (parsed.horaAmbigua) {
-    return { hora: null, nota: `the title says "${parsed.horaAmbigua}" without AM/PM, so it was not used` };
-  }
-  const { servicio, candidatos } = findService(churchInfo.servicios, { diaSemana: dia, titulo: parsed.titulo });
-  if (servicio) return { hora: servicio.hora, fuente: 'church-info.md' };
-  if (candidatos.length) {
-    const lista = candidatos.map((s) => `${s.hora}${s.nombre ? ` ${s.nombre}` : ''}`).join(', ');
-    return { hora: null, nota: `${dia} has several services (${lista}) and the title does not name one` };
-  }
-  return { hora: null, nota: `no time on the card or in the title, and church-info.md lists no service on ${dia}` };
-}
-
-function resolverLugar({ location, parsed, churchInfo }) {
-  if (location?.trim()) return { lugar: location.trim(), fuente: 'calendario' };
-  if (parsed.virtual) return { lugar: parsed.virtual, fuente: 'titulo' };
-  if (churchInfo.lugarPorDefecto) return { lugar: churchInfo.lugarPorDefecto, fuente: 'church-info.md' };
-  return { lugar: null, fuente: null };
 }
 
 function descartar(raw, motivo) {
@@ -174,18 +149,23 @@ function registroFinal(e) {
  * @param {object} args
  * @param {string} args.week ISO week, e.g. "2026-W39"
  * @param {Array<{summary?: string, timeZone?: string, events: object[]}>} args.calendars raw calendar responses
- * @param {ReturnType<import('./church-info.mjs').parseChurchInfo>} args.churchInfo
+ * @param {{iglesia?: object, eventos?: Record<string, object>}} [args.lectura] what Claude read from the
+ *   titles and church-info.md: the church facts, and per calendar event id its clean `titulo`, `hora` +
+ *   `horaFuente`, `lugar` + `lugarFuente`, `ministerio`, `modalidad`, and optional `horaNota`. The card's own
+ *   time and place win over it.
  * @param {Record<string, object>} [args.overrides] human answers keyed by slug
  * @returns {{doc: object, problemas: string[]}}
  */
-export function normalizeWeek({ week, calendars, churchInfo, overrides = {} }) {
+export function normalizeWeek({ week, calendars, lectura = {}, overrides = {} }) {
   const { inicio, fin } = weekRange(week);
-  const problemas = churchInfo.problemas.map((p) => `church-info.md: ${p}`);
+  const problemas = [];
+  const ids = new Set();
   const descartados = [];
   let eventos = [];
 
   for (const calendario of calendars) {
     for (const raw of calendario.events ?? []) {
+      ids.add(raw.id);
       if (raw.status === 'cancelled') {
         descartados.push(descartar(raw, 'cancelled'));
         continue;
@@ -205,28 +185,37 @@ export function normalizeWeek({ week, calendars, churchInfo, overrides = {} }) {
         continue;
       }
 
-      const parsed = parseTitulo(raw.summary, { ministerios: churchInfo.ministerios });
-      const { hora, fuente, nota } = resolverHora({ horaTarjeta, parsed, fecha, churchInfo });
-      const { lugar, fuente: lugarFuente } = resolverLugar({ location: raw.location, parsed, churchInfo });
-      const virtual = Boolean(parsed.virtual);
+      const leido = lectura.eventos?.[raw.id] ?? {};
+      let [hora, horaFuente] = [horaTarjeta, horaTarjeta ? 'calendario' : null];
+      if (!hora && leido.hora) {
+        if (isHora(leido.hora)) [hora, horaFuente] = [leido.hora, leido.horaFuente];
+        else problemas.push(`lectura "${raw.id}": hora "${leido.hora}" is not HH:MM (24h), ignored`);
+      }
+      const lugarTarjeta = raw.location?.trim();
+      const titulo = leido.titulo?.trim() || raw.summary;
+      const virtual = leido.modalidad === 'virtual';
 
       eventos.push({
         eventId: raw.id ?? null,
-        titulo: parsed.titulo,
-        base: slugify(parsed.titulo) || 'evento',
-        ministerio: parsed.ministerio ?? parsed.ministerioClave,
+        titulo,
+        base: slugify(titulo) || 'evento',
+        ministerio: leido.ministerio ?? null,
         fecha,
         fechaFin,
         diaSemana: diaSemana(fecha),
         hora,
-        horaFuente: fuente ?? null,
-        horaNota: nota,
-        lugar,
-        lugarFuente,
+        horaFuente,
+        horaNota: leido.horaNota,
+        lugar: lugarTarjeta || leido.lugar || null,
+        lugarFuente: lugarTarjeta ? 'calendario' : leido.lugar ? leido.lugarFuente : null,
         modalidad: virtual ? 'virtual' : 'presencial',
         plantilla: virtual ? 'virtual' : 'estandar',
       });
     }
+  }
+
+  for (const id of Object.keys(lectura.eventos ?? {})) {
+    if (!ids.has(id)) problemas.push(`lectura "${id}": no calendar event has that id`);
   }
 
   eventos.sort(comparar);
@@ -234,6 +223,7 @@ export function normalizeWeek({ week, calendars, churchInfo, overrides = {} }) {
   eventos = aplicarOverrides(eventos, overrides, problemas, descartados);
   eventos.sort(comparar);
 
+  const iglesia = lectura.iglesia ?? {};
   const nombres = [...new Set(calendars.map((c) => c.summary).filter(Boolean))];
   const doc = {
     week,
@@ -241,11 +231,11 @@ export function normalizeWeek({ week, calendars, churchInfo, overrides = {} }) {
     calendar: nombres.join(' + '),
     timezone: calendars[0]?.timeZone ?? null,
     iglesia: {
-      nombre: churchInfo.nombre,
-      direccion: churchInfo.direccion,
-      lugarPorDefecto: churchInfo.lugarPorDefecto,
-      llamadoAccion: churchInfo.llamadoAccion,
-      despedida: churchInfo.despedida,
+      nombre: iglesia.nombre ?? null,
+      direccion: iglesia.direccion ?? null,
+      lugarPorDefecto: iglesia.lugarPorDefecto ?? null,
+      llamadoAccion: iglesia.llamadoAccion ?? null,
+      despedida: iglesia.despedida ?? null,
     },
     events: eventos.map(registroFinal),
     descartados,

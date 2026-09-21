@@ -39,6 +39,9 @@ const juntar = (r, slug) => {
 };
 
 juntar(auditEvents(doc), undefined);
+if (!doc.iglesia?.nombre) {
+  todos.errores.push({ regla: 'sin-iglesia', mensaje: `events.json has no church name: write ${join(weekDir(week), 'lectura.json')} and run normalize.mjs again` });
+}
 
 const seleccion = slugs.length ? slugs : doc.events.map((e) => e.slug);
 for (const slug of seleccion) {
