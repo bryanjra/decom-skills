@@ -4,6 +4,7 @@
     Lugar por defecto: Salón Principal
     Ministerios: Jóvenes, Adolescentes, Familias
     Llamado a la accion: Te esperamos
+    Despedida: Dios te bendiga
 
 # Servicios recurrentes
     Martes: 6:45 PM - 8:00 PM

@@ -14,6 +14,7 @@ const MESSY = [
   '    Lugar por defecto: Salón Principal',
   '    Ministerios: Jóvenes, Adolescentes, Familias',
   '    Llamado a la accion: Te esperamos',
+  '    Despedida: Dios te bendiga',
   '',
   '# Servicios recurrentes',
   '    Martes: 6:45 PM - 8:00 PM',
@@ -32,6 +33,7 @@ test('reads the church facts from labelled lines', () => {
   assert.equal(info.lugarPorDefecto, 'Salón Principal');
   assert.deepEqual(info.ministerios, ['Jóvenes', 'Adolescentes', 'Familias']);
   assert.equal(info.llamadoAccion, 'Te esperamos');
+  assert.equal(info.despedida, 'Dios te bendiga');
 });
 
 test('labels are matched ignoring case and accents', () => {
@@ -61,6 +63,7 @@ test('anything the file does not say stays empty, never defaulted', () => {
     lugarPorDefecto: null,
     ministerios: [],
     llamadoAccion: null,
+    despedida: null,
     servicios: [],
     problemas: [],
   });
@@ -85,6 +88,7 @@ test('church-info.example.md documents every field and parses cleanly', () => {
   const info = parseChurchInfo(readFileSync(path, 'utf8'));
   assert.deepEqual(info.problemas, []);
   assert.ok(info.nombre && info.direccion && info.lugarPorDefecto && info.llamadoAccion);
+  assert.ok(info.despedida);
   assert.ok(info.ministerios.length > 0);
   assert.ok(info.servicios.length > 0);
 });

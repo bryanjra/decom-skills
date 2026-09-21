@@ -237,6 +237,7 @@ export function normalizeWeek({ week, calendars, churchInfo, overrides = {} }) {
       direccion: churchInfo.direccion,
       lugarPorDefecto: churchInfo.lugarPorDefecto,
       llamadoAccion: churchInfo.llamadoAccion,
+      despedida: churchInfo.despedida,
     },
     events: eventos.map(registroFinal),
     descartados,

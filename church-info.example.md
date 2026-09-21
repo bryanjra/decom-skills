@@ -16,6 +16,7 @@ Recurring services must sit under a heading that contains "Servicios" or
     Lugar por defecto: Salón Principal
     Ministerios: Jóvenes, Adolescentes, Familias
     Llamado a la accion: Te esperamos
+    Despedida: Dios te bendiga
 
 <!--
   Nombre               Church name, shown on the intro/outro and in the logo slot.
@@ -25,7 +26,9 @@ Recurring services must sit under a heading that contains "Servicios" or
   Ministerios          Comma-separated audiences. A calendar title that contains
                        exactly one of these words is tagged with that ministry.
                        A "(Ministerio) - Título" prefix is always understood.
-  Llamado a la accion  The closing call to action every ad ends with.
+  Llamado a la accion  The church's closing call to action; said once, in the weekly outro.
+  Despedida            Optional blessing said right after it (e.g. "Dios te bendiga").
+                       Without it, the outro is the call to action alone.
 -->
 
 # Servicios recurrentes

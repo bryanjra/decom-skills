@@ -4,6 +4,7 @@
     Lugar por defecto: Templo
     Ministerios: Jóvenes, Adolescentes, Familias, Escuela Dominical, Alabanza, Evangelismo
     Llamado a la accion: Te esperamos
+    Despedida: Dios te bendiga
 
 # Servicios recurrentes
     Martes: 6:45 PM - 8:00 PM

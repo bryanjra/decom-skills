@@ -89,13 +89,14 @@ test('church facts are copied from church-info.md, not from the code', () => {
     direccion: 'Calle 1 #2-3, Ciudad Ejemplo',
     lugarPorDefecto: 'Salón Principal',
     llamadoAccion: 'Te esperamos',
+    despedida: 'Dios te bendiga',
   });
 });
 
 test('with an empty church-info.md nothing about the church is invented', () => {
   const empty = parseChurchInfo('');
   const { doc } = run([allDay('Charla familias', '2026-09-25', '2026-09-26')], { churchInfo: empty });
-  assert.deepEqual(doc.iglesia, { nombre: null, direccion: null, lugarPorDefecto: null, llamadoAccion: null });
+  assert.deepEqual(doc.iglesia, { nombre: null, direccion: null, lugarPorDefecto: null, llamadoAccion: null, despedida: null });
   const e = doc.events[0];
   assert.equal(e.lugar, null);
   assert.equal(e.lugarFuente, null);

@@ -12,6 +12,7 @@ const CAMPOS = {
   'lugar por defecto': 'lugarPorDefecto',
   ministerios: 'ministerios',
   'llamado a la accion': 'llamadoAccion',
+  despedida: 'despedida',
 };
 
 /** Start time of "6:45 PM - 8:00 PM" as "18:45". Only the start is read. */
@@ -44,6 +45,7 @@ export function parseChurchInfo(texto) {
     lugarPorDefecto: null,
     ministerios: [],
     llamadoAccion: null,
+    despedida: null,
     servicios: [],
     problemas: [],
   };
