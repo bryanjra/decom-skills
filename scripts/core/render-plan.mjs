@@ -1,37 +1,82 @@
 // What scripts/render.mjs feeds to Remotion, kept free of I/O so it is testable.
 // Paths are relative to video/public/, the way staticFile() expects them.
 
-import { cleanGuion } from './guion.mjs';
+import { cuts, sceneFrames } from './escenas.mjs';
+import { estimateTimes, sectionTimes } from './narracion.mjs';
 
 const STILL_AT = 0.6; // ad.png is taken this far into the clip, once the animation has settled
 const MUSIC_SRC = 'music/bed.mp3';
 
-export const audioSrcFor = (slug) => `audio/${slug}.mp3`;
+/** The week's single voiceover, staged by stage-audio.mjs. */
+export const NARRATION_SRC = 'audio/semana.mp3';
 
 /** The frame to export as ad.png: about 60% in, always inside the clip. */
 export const stillFrame = (durationInFrames) => Math.max(0, Math.min(durationInFrames - 1, Math.round(durationInFrames * STILL_AT)));
 
-/** Props of the EventAd composition for one event. */
-export function eventProps({ event, iglesia, guion, hasAudio }) {
-  const hablado = cleanGuion(guion);
-  return {
-    slug: event.slug,
-    event,
-    iglesia,
-    audioSrc: hasAudio ? audioSrcFor(event.slug) : null,
-    palabras: hablado ? hablado.split(' ').length : 0,
-  };
-}
+const palabrasDe = (texto) => (texto ? texto.split(/\s+/).filter(Boolean).length : 0);
 
-/** Props of the WeeklyReel composition; `items` are eventProps results, in reel order. */
-export function reelProps({ doc, items, hasMusic }) {
+/**
+ * Everything the compositions need for one week.
+ * @param {object} a
+ * @param {object} a.doc events.json
+ * @param {Array<{id: string, text: string}>} a.sections the parsed guion.md
+ * @param {{characters: string[], character_start_times_seconds: number[], character_end_times_seconds: number[]}|null} a.alignment
+ *   voz.alineacion.json, or null when the week has no voiceover
+ * @param {boolean} a.hasMusic
+ * @param {{leadSeconds: number, tailSeconds: number, transitionSeconds: number, outroSeconds: number, wordsPerSecond: number,
+ *   slicePadBeforeSeconds: number, slicePadAfterSeconds: number}} a.motion the motion tokens of video/src/brand/tokens.ts
+ * @param {number} a.fps
+ * @returns {{items: object[], reel: object}} EventAdProps per event, and the WeeklyReelProps
+ */
+export function weekPlan({ doc, sections, alignment, hasMusic, motion, fps }) {
+  const tiempos = alignment
+    ? sectionTimes(sections, alignment)
+    : estimateTimes(sections, { wordsPerSecond: motion.wordsPerSecond, pauseSeconds: motion.transitionSeconds });
+  const audioSeconds = alignment ? alignment.character_end_times_seconds.at(-1) : null;
+  const ventana = (id) => tiempos.find((t) => t.id === id) ?? { startSec: null, endSec: null };
+  const textoDe = (id) => sections.find((s) => s.id === id)?.text ?? '';
+  // Checked first: a missing section would otherwise surface as a confusing "cuts out of order" error.
+  for (const e of doc.events) {
+    if (ventana(e.slug).startSec === null) throw new Error(`guion.md has no section for "${e.slug}"`);
+  }
+
+  // Scenes are [intro card, one per event, outro card]; each is cut where the voice pauses.
+  const ids = ['intro', ...doc.events.map((e) => e.slug), 'outro'];
+  const transicion = Math.round(motion.transitionSeconds * fps);
+  const cortes = cuts(ids.map(ventana), {
+    leadSec: motion.leadSeconds,
+    tailSec: motion.tailSeconds,
+    silentSec: motion.outroSeconds,
+  });
+  const frames = sceneFrames(cortes.map((s) => Math.round(s * fps)), transicion);
+
+  const items = doc.events.map((event) => {
+    const { startSec, endSec } = ventana(event.slug);
+    return {
+      slug: event.slug,
+      event,
+      iglesia: doc.iglesia,
+      voz: alignment
+        ? {
+            src: NARRATION_SRC,
+            fromSec: Math.max(0, startSec - motion.slicePadBeforeSeconds),
+            toSec: Math.min(audioSeconds, endSec + motion.slicePadAfterSeconds),
+          }
+        : null,
+      palabras: palabrasDe(textoDe(event.slug)),
+    };
+  });
+
   return {
-    semanaTexto: doc.semana.texto,
-    iglesia: doc.iglesia,
     items,
-    musicSrc: hasMusic ? MUSIC_SRC : null,
+    reel: {
+      semanaTexto: doc.semana.texto,
+      iglesia: doc.iglesia,
+      items,
+      musicSrc: hasMusic ? MUSIC_SRC : null,
+      frames,
+      voiceStartFrame: Math.round(motion.leadSeconds * fps),
+      narration: alignment ? { audioSrc: NARRATION_SRC, audioSeconds } : null,
+    },
   };
 }
-
-/** Events that will be silent, for the report at the end of a render. */
-export const silentSlugs = (items) => items.filter((i) => !i.audioSrc).map((i) => i.slug);
