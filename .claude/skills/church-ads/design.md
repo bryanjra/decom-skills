@@ -70,9 +70,11 @@ Every fact on screen comes from `event` or `iglesia`, and nothing else exists.
   are vendored under `brand/fonts/` and registered once by `brand/fonts.ts`; do not
   import web fonts.
 - Spacing: `brand.space.*`. The logo is drawn by `Wordmark`, which falls back to the
-  church name until `brand.logo` is set.
-- The token values are placeholders until the real brand arrives. Design against
-  the token names, never against what they currently look like.
+  church name when `brand.logo` is null.
+- Colors and logo are the IPUC's official identity; `brand/corporate-brand.md` holds
+  the logo, naming and layout rules (flat background under the logo, nothing over it,
+  full name never replaced by "IPUC"). The fonts are still placeholders. Design
+  against the token names, never against what they currently look like.
 
 ## Motion
 

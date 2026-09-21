@@ -264,9 +264,11 @@ Full end-to-end on a real week; `README.md` for the church team. *The Spanish
 - **Music bed.** Shipping without one. The slot exists in `WeeklyReel`, so this
   stays a one-file change whenever a royalty-free track is chosen.
 
-Still needed from the church, tracked in § 3 Phase 0: the logo (`brand/logo.svg`,
-then `logo` in `tokens.ts`) and the real brand colors and fonts. Until then
-`tokens.ts` and the vendored Montserrat files are placeholders. The ElevenLabs voice
+Brand, tracked in § 3 Phase 0: colors and logo are set from the identity manual
+(2026-09-21, the manual's stated hex values; see `brand/corporate-brand.md`). Still
+open: the fonts (Myriad Pro is not vendored, so the Montserrat files are placeholders)
+and `Wordmark`, which at 96 px shows the real logo too small to read and no longer
+shows the church name. The ElevenLabs voice
 ID is in `.env`. `church-info.md` carries Nombre, Lugar por defecto, Ministerios and
 Llamado a la accion (added 2026-09-21); without them the ads have no church name, no
 place and no call to action.

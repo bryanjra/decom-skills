@@ -43,10 +43,10 @@ fecha) y la herramienta te avisa. No se detiene y tampoco adivina.
 
    Las voces de la biblioteca de ElevenLabs solo se pueden usar por API con un plan de
    pago. El modelo y los ajustes de la voz están en `scripts/voice.json`.
-4. **El logo y los colores de la iglesia.** Hoy el diseño usa colores y una tipografía de
-   muestra. Cuando los tengas: el logo va en `brand/logo.svg`, y los colores, las
-   fuentes y el logo se registran en `video/src/brand/tokens.ts`, el único archivo donde
-   viven.
+4. **El logo y los colores de la iglesia.** Ya están: el logo en `brand/logo/` y los
+   colores tomados del manual de identidad (`brand/corporate-brand.md`), registrados en
+   `video/src/brand/tokens.ts`, el único archivo donde viven. Falta la tipografía: hoy el
+   diseño usa Montserrat de muestra en lugar de Myriad Pro, que es la del manual.
 
 > Para quien administra el equipo: hace falta Node 22 o superior y las dependencias
 > instaladas en `video/`. En Linux, el navegador de Remotion necesita librerías del
