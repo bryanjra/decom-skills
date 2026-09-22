@@ -396,3 +396,119 @@ test('a week built with null overrides passes the audit, with notices that say w
   }
   assert.deepEqual(avisos.filter((a) => a.regla === 'sin-lugar').map((a) => a.slug), ['ayuno']);
 });
+
+// ---- recurring services (what Claude reads from church-info.md; code only places them in the week) ----
+
+const MARTES = { dia: 'martes', titulo: 'Culto dirigido por Damas', hora: '18:45', lugar: 'Salón Principal', ministerio: 'Damas' };
+const SABADO_AYUNO = { dia: 'Sábado', titulo: 'Ayuno general', hora: '07:00', lugar: 'Salón Principal' };
+const SABADO_NOCHE = { dia: 'sabado', titulo: 'Culto dirigido por Jóvenes', hora: '18:45', lugar: 'Salón Principal', ministerio: 'Jóvenes' };
+const recurrentes = (...servicios) => ({ lectura: { iglesia: IGLESIA, recurrentes: servicios } });
+
+test('a recurring service becomes an event on its weekday of the week, with church-info.md as its source', () => {
+  const e = only([], recurrentes(MARTES));
+  assert.equal(e.origen, 'recurrente');
+  assert.equal(e.eventId, null);
+  assert.equal(e.titulo, 'Culto dirigido por Damas');
+  assert.equal(e.ministerio, 'Damas');
+  assert.equal(e.fecha, '2026-09-22');
+  assert.equal(e.diaSemana, 'martes');
+  assert.equal(e.fechaTexto, 'martes 22 de septiembre');
+  assert.equal(e.hora, '18:45');
+  assert.equal(e.horaTexto, '6:45 p. m.');
+  assert.equal(e.horaFuente, 'church-info.md');
+  assert.equal(e.lugar, 'Salón Principal');
+  assert.equal(e.lugarFuente, 'church-info.md');
+  assert.equal(e.modalidad, 'presencial');
+  assert.equal(e.plantilla, 'estandar');
+  assert.equal('fechaFin' in e, false);
+});
+
+test('a calendar event carries origen "calendario"', () => {
+  assert.equal(only([allDay('Charla familias', '2026-09-25', '2026-09-26')]).origen, 'calendario');
+});
+
+test('a week with no calendar events still has its recurring services', () => {
+  const { doc, problemas } = run([], recurrentes(MARTES, SABADO_NOCHE));
+  assert.deepEqual(problemas, []);
+  assert.deepEqual(doc.events.map((e) => e.fecha), ['2026-09-22', '2026-09-26']);
+});
+
+test('the day may be written with or without accent, in any case, singular or plural, as church-info.md has it', () => {
+  const { doc, problemas } = run([], recurrentes({ ...MARTES, dia: 'MARTES' }, { ...SABADO_AYUNO, dia: 'Sabados' }, { ...MARTES, dia: 'Domingos', hora: '09:00' }));
+  assert.deepEqual(problemas, []);
+  assert.deepEqual(doc.events.map((e) => e.diaSemana).sort(), ['domingo', 'martes', 'sábado']);
+});
+
+test('a day that names no weekday is a problem and adds no event', () => {
+  const { doc, problemas } = run([], recurrentes({ ...MARTES, dia: 'marte' }));
+  assert.deepEqual(doc.events, []);
+  assert.equal(problemas.length, 1);
+  assert.match(problemas[0], /marte/);
+});
+
+test('a service without a title is a problem and adds no event', () => {
+  const { doc, problemas } = run([], recurrentes({ dia: 'jueves', hora: '18:45' }));
+  assert.deepEqual(doc.events, []);
+  assert.equal(problemas.length, 1);
+  assert.match(problemas[0], /jueves/);
+});
+
+test('a malformed time is a problem and the service is announced without a time', () => {
+  const { doc, problemas } = run([], recurrentes({ ...MARTES, hora: '6:45 PM' }));
+  assert.equal(doc.events[0].hora, null);
+  assert.equal(doc.events[0].horaFuente, null);
+  assert.equal(problemas.length, 1);
+  assert.match(problemas[0], /6:45 PM/);
+});
+
+test('a service with no place is announced without one, and says nothing invented about it', () => {
+  const e = only([], recurrentes({ dia: 'martes', titulo: 'Culto', hora: '18:45' }));
+  assert.equal(e.lugar, null);
+  assert.equal(e.lugarFuente, null);
+  assert.equal(e.ministerio, null);
+});
+
+test('the slug of a service comes from its day and start time, not from the title or the rest of the week', () => {
+  const solos = run([], recurrentes(SABADO_AYUNO, SABADO_NOCHE)).doc.events;
+  assert.deepEqual(solos.map((e) => e.slug), ['servicio-sabado-0700', 'servicio-sabado-1845']);
+
+  const conOtros = run(
+    [allDay('Culto dirigido por Jóvenes', '2026-09-26', '2026-09-27'), allDay('Ayuno general', '2026-09-26', '2026-09-27')],
+    recurrentes({ ...SABADO_AYUNO, titulo: 'Ayuno' }, { ...SABADO_NOCHE, titulo: 'Culto de jóvenes' }),
+  ).doc.events.filter((e) => e.origen === 'recurrente');
+  assert.deepEqual(conOtros.map((e) => e.slug), ['servicio-sabado-0700', 'servicio-sabado-1845']);
+});
+
+test('a service without a time gets a slug from its day alone', () => {
+  assert.equal(only([], recurrentes({ dia: 'jueves', titulo: 'Oración y Enseñanza' })).slug, 'servicio-jueves');
+});
+
+test('a card on a service day never displaces the service: whether they overlap is Claude\'s call, not the code\'s', () => {
+  const { doc } = run(
+    [allDay('Culto de caballeros', '2026-09-26', '2026-09-27')],
+    recurrentes(SABADO_NOCHE),
+  );
+  assert.deepEqual(doc.events.map((e) => [e.origen, e.titulo]), [
+    ['recurrente', 'Culto dirigido por Jóvenes'], // timed, so it sorts before the untimed card
+    ['calendario', 'Culto de caballeros'],
+  ]);
+});
+
+test('an override can omit a recurring service for the week, by its slug', () => {
+  const { doc, problemas } = run([], { ...recurrentes(MARTES, SABADO_NOCHE), overrides: { 'servicio-martes-1845': { omitir: true } } });
+  assert.deepEqual(problemas, []);
+  assert.deepEqual(doc.events.map((e) => e.slug), ['servicio-sabado-1845']);
+  assert.deepEqual(doc.descartados.map((d) => d.titulo), ['Culto dirigido por Damas']);
+});
+
+test('a person\'s time for a recurring service beats the schedule and is labelled "usuario"', () => {
+  const e = only([], { ...recurrentes(MARTES), overrides: { 'servicio-martes-1845': { hora: '19:30' } } });
+  assert.equal(e.hora, '19:30');
+  assert.equal(e.horaFuente, 'usuario');
+});
+
+test('recurring services pass the audit with no errors and no notices', () => {
+  const { doc } = run([], recurrentes(MARTES, SABADO_AYUNO));
+  assert.equal(doc.events.length, 2);
+  assert.deepEqual(auditEvents(doc), { errores: [], avisos: [] });
+});

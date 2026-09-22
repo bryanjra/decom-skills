@@ -14,7 +14,10 @@ What is useful to say:
 - The closing words of the weekly video, e.g. "Te esperamos", and an optional blessing
   after them, e.g. "Dios te bendiga".
 - The recurring services: the day, the start time, and its name if there are two on one
-  day. Claude uses them for an event that has no time on the calendar.
+  day. Each becomes its own weekly ad by default, since it is not always put on the
+  calendar (it is assumed everyone already knows about it, but it still happens); when a
+  calendar event turns out to be that same service, Claude asks you and uses the card
+  instead.
 
 Example:
 

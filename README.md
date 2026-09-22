@@ -21,8 +21,9 @@ solo pueden venir de tres sitios: la tarjeta del evento en el calendario,
 gente a una puerta cerrada.
 
 Por eso, si no se sabe la hora de un evento, el anuncio **sale sin hora** (solo con la
-fecha). Antes de hacer nada, Claude te pregunta por lo que no esté claro; y si le dices
-«sigue», tampoco adivina: solo usa lo que dicen esas fuentes.
+fecha). Antes de hacer nada, Claude te pregunta por lo que no esté claro, uno por uno: no
+hay una sola palabra que conteste todo de una vez y le dé por bueno algo que tú no
+confirmaste.
 
 ## Lo que necesitas una sola vez
 
@@ -41,7 +42,7 @@ fecha). Antes de hacer nada, Claude te pregunta por lo que no esté claro; y si 
    | `Ministerios` | Los grupos de la iglesia (Jóvenes, Familias...) para etiquetar el público |
    | `Llamado a la accion` | La frase con la que termina el video de la semana (por ejemplo, "Te esperamos") |
    | `Despedida` | Opcional: lo que se dice justo después (por ejemplo, "Dios te bendiga") |
-   | Servicios recurrentes | Los horarios fijos de la semana (el día y la hora de inicio, y el nombre si hay dos el mismo día); de aquí sale la hora de un evento sin hora |
+   | Servicios recurrentes | Los horarios fijos de la semana (el día, la hora de inicio, y quién lo dirige o su tema si hay dos el mismo día). Cada uno se anuncia por sí solo, aunque no tenga un evento propio en el calendario: se da por sabido, pero igual pasa cada semana |
 
 3. **Una cuenta de ElevenLabs de pago** y una voz elegida. Guarda los datos en un archivo
    `.env` en esta carpeta (nunca lo compartas ni lo subas a ningún sitio):
@@ -79,16 +80,20 @@ En palabras sencillas, esto es lo que pasa:
    escondida en un título, el servicio al que pertenece, el lugar de siempre) y los ordena
    en `out/2026-W39/events.json` (`W39` es el número de la semana del año, de lunes a
    domingo).
-3. **Te muestra los eventos y te pregunta solo lo que no está claro**, en un solo mensaje.
-   Primero, cada evento con su día, hora y lugar y de dónde salió cada dato; lo rutinario
-   (un evento sin hora sale solo con la fecha; uno sin lugar propio sale en el lugar de
-   siempre) va ahí, sin número. Después, con número, solo las dudas de verdad: una hora
-   que no está segura, un lugar que quizá es otro, un título que no entiende o que parece
-   interno. Respondes con pocas palabras, por ejemplo «1 solo fecha, 2 omitir,
-   3 anúncialo, 4 sin lugar», o escribes «sigue» si todo está bien. Con «sigue» no adivina
-   nada: quita la hora o el lugar dudosos y deja fuera los eventos que nadie le explicó,
-   porque un anuncio publicado no se puede deshacer. Al final te dice cuáles dejó fuera, y
-   uno vuelve a entrar si le dices «anúncialo».
+3. **Te muestra los eventos, agrupados por día, y te pregunta solo lo que no está
+   claro**, en un solo mensaje. Primero, cada evento con su hora y lugar y de dónde salió
+   cada dato; lo rutinario (un evento sin hora sale solo con la fecha; uno sin lugar propio
+   sale en el lugar de siempre; un culto de siempre sin evento propio en el calendario) va
+   ahí, sin número. Después, con número, solo las dudas de verdad: una hora que no está
+   segura, un lugar que quizá es otro, un título que no entiende o que parece interno, o
+   dos eventos el mismo día que podrían ser el mismo culto. **Cada número necesita su
+   propia respuesta**: aunque digas «sigue» o «todo bien», eso solo confirma la lista, no
+   contesta las dudas numeradas, y Claude te vuelve a preguntar por las que falten.
+   Respondes con pocas palabras, por ejemplo «1 los dos, 2 omitir, 3 anúncialo, 4 sin
+   lugar». Nada se adivina: una hora o un lugar dudoso solo se usa si tú lo confirmas, y un
+   evento que nadie explicó queda fuera hasta que tú lo pidas, porque un anuncio publicado
+   no se puede deshacer. Al final te dice cuáles dejó fuera, y uno vuelve a entrar si le
+   dices «anúncialo».
 4. **Crea el diseño de cada evento.**
 5. **Escribe la narración de la semana**: un solo guion (bienvenida, un evento tras
    otro y el cierre) y una sola voz que lo lee de corrido.
@@ -114,23 +119,34 @@ out/2026-W39/
 `out/` es desechable: si algo no te gusta, cambia el origen (el guion, un dato, una
 corrección) y vuelve a generar. Nunca edites esos archivos a mano.
 
-## Cómo se decide la hora de un evento
+## Cómo se decide la hora de un evento, y los cultos de siempre
 
-Claude lee el evento del calendario junto con `church-info.md` y se queda con la primera
-fuente que dé la hora, en este orden:
+Para un evento que sí tiene tarjeta en el calendario, Claude se queda con la primera fuente
+que dé la hora:
 
 1. La hora de la tarjeta del evento en el calendario.
 2. Una hora escrita en el título (por ejemplo, `2pm ...`).
-3. `church-info.md`: si el evento no tiene hora y cae en un día con servicio fijo, toma la
-   hora de **inicio** de ese servicio. Si ese día hay dos o más servicios (los sábados o
-   los domingos, por ejemplo), Claude entiende por el título de cuál se trata («Ayuno...»
-   es el ayuno, «Culto...» es el culto); si no puede saberlo, no adivina y te pregunta.
-4. Si nada de lo anterior aplica, **no hay hora**.
+3. Si ninguna de las dos dice nada, **no hay hora**: el anuncio sale solo con la fecha.
 
 Lo mismo vale para el lugar (el de la tarjeta, el que diga el título, o el lugar de
-siempre) y para el ministerio. Nada se da por bueno sin que lo veas: antes de hacer los
-anuncios, Claude te muestra cada evento con su hora y su lugar, y ahí corriges lo que esté
-mal.
+siempre) y para el ministerio.
+
+**Los cultos de siempre son distintos: se anuncian aunque no tengan tarjeta propia**, con
+la hora y el lugar que digas en `church-info.md`, porque no siempre se crea un evento para
+ellos en el calendario — se da por sabido, pero igual pasa cada semana. Cuando sí hay una
+tarjeta ese día, Claude decide si es el mismo culto o si son dos cosas distintas:
+
+- Si la tarjeta tiene claramente el mismo horario, o su título es solo el nombre del
+  culto, es el mismo: se anuncia con lo que diga la tarjeta, y el culto de siempre no se
+  repite.
+- Si hay duda (la tarjeta no tiene hora, tiene otra hora, o su título nombra a otro grupo,
+  como «Culto de caballeros» un día cuyo culto de siempre no es de un grupo en particular),
+  Claude no decide por su cuenta: te pregunta. Es que a veces sí hay dos cultos a la misma
+  hora, en salones distintos (por ejemplo, uno de damas y otro de caballeros), así que
+  adivinar podría borrar un culto real o inventar uno de más.
+
+Nada se da por bueno sin que lo veas: antes de hacer los anuncios, Claude te muestra cada
+evento con su hora y su lugar, agrupado por día, y ahí corriges lo que esté mal.
 
 ## Claude lee tus datos: por qué la lista del primer mensaje importa
 
@@ -139,7 +155,8 @@ como los leería una persona. Eso te da libertad (escribe como quieras, con fras
 errores de tipeo, sin ordenar nada), y a cambio hay algo que debes saber: Claude puede
 entender algo distinto de lo que querías, y ningún programa compara lo que entendió con el
 archivo. **La revisión de verdad eres tú**, con la lista del primer mensaje (cada evento
-con su hora, su lugar y de dónde salió). Léela con calma antes de decir «sigue».
+con su hora, su lugar y de dónde salió, agrupados por día). Léela con calma: es la única
+comparación entre lo que Claude entendió y la realidad.
 
 - **Si algo está mal**, dilo con tus palabras («esa es a las 7 p. m.», «sin lugar»). Claude
   lo corrige y no te lo vuelve a preguntar esa semana.
@@ -160,6 +177,9 @@ Lo que aprendimos para que te entienda mejor:
   puerta.
 - Un error de tipeo en `church-info.md` no lo rompe. Pero un dato que falta sí se nota:
   lo que no esté escrito ahí no aparece en los anuncios.
+- Si un evento del calendario es en realidad el culto de siempre, con otro nombre o sin
+  hora, dilo en la respuesta numerada («2 es el mismo») en vez de dejarla sin contestar:
+  así Claude no anuncia el culto dos veces.
 
 > Para quien administra: la lectura de Claude queda en `out/<semana>/lectura.json`. Se
 > rehace cada vez a partir del `church-info.md` de ese momento; no la edites. Lo que tú
@@ -180,9 +200,14 @@ su nombre corto (su *slug*: minúsculas, sin tildes y con guiones, como `charla-
 {
   "charla-familias": { "hora": "19:00", "lugar": "Templo" },
   "retiro-jovenes": { "hora": null },
-  "reunion-interna": { "omitir": true }
+  "reunion-interna": { "omitir": true },
+  "servicio-sabado-1845": { "omitir": true }
 }
 ```
+
+El último ejemplo omite un culto de siempre: su nombre corto sale del día y la hora del
+horario fijo (`servicio-<día>-<hora>`), no del título, para que siga siendo el mismo de una
+semana a otra.
 
 | Clave | Valor | Efecto |
 |---|---|---|

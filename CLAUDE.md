@@ -22,11 +22,15 @@ verified feasibility findings.
    ad sends real people to a locked door, so what is unknown stays *absent*: an
    event whose time cannot be found is advertised by date only. Doubts about an
    event are asked once, in plain Spanish, at a checkpoint before anything is
-   made, each with a safe suggested answer; the user's "sigue" accepts only what
-   the sources say and never adds a fact. What does block is an integrity
-   error: an `inferido` time source, a malformed time, a duplicate slug, an
-   override that names no event. `events.json` carries `horaFuente` for exactly
-   this; `scripts/validate.mjs` audits it before rendering.
+   made, each with a safe suggested answer that is only a guide, never a
+   default: every numbered doubt needs the user's own answer, and nothing is
+   made while one is open. What does block is an integrity error: an
+   `inferido` time source, a malformed time, a duplicate slug, an override that
+   names no event. `events.json` carries `horaFuente` for exactly this;
+   `scripts/validate.mjs` audits it before rendering. A recurring service from
+   `church-info.md` with no calendar card of its own is an ad by default too —
+   assumed well known, but it still happens — unless the user, asked, says it
+   is not happening this week.
 2. **All audience-facing output is in Spanish** (Colombia), addressing the
    reader as `tú` — never `usted`. The closing call to action is the church's
    own, from `church-info.md` (`Llamado a la accion`; for IPUC Envigado Central
@@ -123,23 +127,33 @@ tracked in this repo.
 - Code does dates and numbers; the orchestrator reads the words. The calendar
   titles and `church-info.md` are typed by non-technical staff, so no code parses
   them: after a first `normalize` run the orchestrator writes
-  `out/<week>/lectura.json` (the church facts, and per event its clean title, time,
-  place, ministry and modality, each with its source) and runs `normalize` again.
-  Checkpoint 1 is the only gate on that reading. An event's time is taken from, in
-  order: the calendar card (code), the title (`2pm ...`), then `church-info.md` (an
-  untimed event on a service day takes that service's *start* time; a day with
-  several services, the one the title names). No match means no time. Human answers go in
+  `out/<week>/lectura.json` (the church facts; per event its clean title, time,
+  place, ministry and modality, each with its source; and `recurrentes`, the
+  week's recurring services that have no calendar card of their own) and runs
+  `normalize` again. Checkpoint 1 is the only gate on that reading. A calendar
+  event's time is taken from, in order: the card (code), then the title
+  (`2pm ...`) — `church-info.md` no longer fills in a card's time. A recurring
+  service with no card is an ad by default (assumed well known, but it still
+  happens); code places it on its weekday with `horaFuente: "church-info.md"`.
+  Whether a same-day card *is* that service, or a second event alongside it, is
+  never decided by code: a clear match retires the service for the week; a real
+  doubt (an untimed or same-time card, or one that may be a second service — two
+  can share a day, e.g. men's and women's services in different rooms) is asked
+  at Checkpoint 1. No match anywhere means no time. Human answers go in
   `overrides/<week>.json`, keyed by slug (`hora`, `lugar`, `modalidad`,
   `plantilla`, `omitir`); `hora: null` and `lugar: null` announce the event
-  without it. The orchestrator writes that file from the user's answers; users
-  never edit it. See `.claude/skills/church-ads/SKILL.md`.
+  without it, and a recurring service's slug (`servicio-<día>[-<hhmm>]`) is
+  stable week to week so `omitir` reliably drops just that one. The orchestrator
+  writes that file from the user's answers; users never edit it. See
+  `.claude/skills/church-ads/SKILL.md`.
 - The users are non-technical church staff, so the orchestrator proposes instead
   of asking for a perfect prompt: the week (current one Mon-Fri, the upcoming one
   on Sat/Sun) and the calendars whose name contains the church's. It talks to them
   in plain Spanish (`tú`; never slug, override, JSON or ISO week) in two
-  checkpoints: one before anything is made (the events with the time and place each
-  will use, and only the real doubts, each with a suggested answer) and one showing
-  the script before the paid voice. Details in the skill.
+  checkpoints: one before anything is made (the events grouped by day, with the
+  time and place each will use, and only the real doubts, each needing the
+  person's own answer, one by one) and one showing the script before the paid
+  voice. Details in the skill.
 - The church name reaches the audience in two places only. The voice says it once,
   in the weekly intro ("Bienvenidos a <name>"), and `validate.mjs` checks the intro
   against `church-info.md`. On screen it appears only through `Logo`: the logo image

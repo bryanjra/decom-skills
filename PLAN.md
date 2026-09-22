@@ -58,10 +58,11 @@ Orchestrator (main session — "professional video editor")
   1. propose the week and the calendars (no perfect prompt needed)
   2. pull events via Google Calendar MCP (America/Bogota)
   3. normalize + enrich -> out/<week>/events.json     <- the contract
-  4. CHECKPOINT 1: one plain-Spanish message with the events and only the real
-     doubts, numbered, each with a suggested answer (routine confirmations are plain
-     lines, not numbered); events with no time or place are made without it (never
-     guessed); only integrity errors stop the run
+  4. CHECKPOINT 1: one plain-Spanish message, events grouped by day, only the real
+     doubts numbered, each with a suggested answer that still needs the person's
+     own reply (routine confirmations are plain lines, not numbered); events with
+     no time or place are made without it (never guessed); only integrity errors
+     stop the run
   5. fan out one ad-designer subagent per event (the visuals)
   6. write the week's narration (guion.md) and validate it, and every ad, against
      events.json
@@ -146,7 +147,8 @@ A fictional example (a real week is in `out/<week>/events.json`):
   "events": [
     {
       "slug": "culto-de-jovenes",
-      "eventId": "…",                  // calendar event id
+      "eventId": "…",                  // calendar event id, or null for a recurring service with no card
+      "origen": "calendario",          // calendario | recurrente
       "titulo": "Culto de jóvenes",
       "ministerio": "Jóvenes",         // a "(Jóvenes) - ..." prefix, or a church-info.md ministry word in the title
       "fecha": "2026-09-22",
@@ -257,7 +259,9 @@ Full end-to-end on a real week; `README.md` for the church team. *The Spanish
 | Calendar | "IPUC Envigado Central II-2026". Sample week 2026-W39 has three all-day events: Oracion virtual (Mon 21), Refam juvenil (Wed 23), Charla familias (Fri 25). |
 | Church facts | Reference data, not code, so another church can reuse the tool. `church-info.md` is free text the orchestrator reads (Nombre, Direccion, Lugar por defecto, Ministerios, Llamado a la accion, Despedida (optional) and the recurring services are what it looks for; no code parses it). The time zone comes from the calendar's own `timeZone`. Tests use a fictional church ("Iglesia Ejemplo"); `church-info.example.md` suggests what to say. |
 | Missing location | The place is the card's, else `Lugar por defecto` from `church-info.md`; "Zoom"/"virtual" in the title makes it a virtual event. With none of these the event has no place and the ad omits it. No address or phone needed. |
-| Missing schedule | **Supersedes "stop and ask".** Time is taken from the card, then the title, then `church-info.md`. An untimed event on a service day inherits that service's *start* time; on a day with several services the orchestrator picks the one the title names. If nothing matches, the ad is made without a time (date only): nothing is guessed and nothing blocks. What is doubtful is asked once, in plain Spanish, at Checkpoint 1 (step 4 of the `church-ads` skill), and the person's "sigue" accepts only what the sources say: it drops a doubtful time, drops the place of an event that may be held elsewhere (a wrong place sends people to the wrong door; a missing one does not), and leaves out an event whose title nobody has explained (publishing cannot be undone; «anúncialo» brings it back). |
+| Missing schedule | **Supersedes "stop and ask".** A calendar event's time is taken from the card, then the title; `church-info.md` no longer fills in a card's time directly (see "Recurring services", below). If nothing matches, the ad is made without a time (date only): nothing is guessed and nothing blocks. What is doubtful is asked once, in plain Spanish, at Checkpoint 1 (step 4 of the `church-ads` skill), and every numbered doubt needs the person's own answer, one by one — no reply stands in for all of them, and none is ever applied on the person's behalf. A doubtful time or place is dropped, or an event left out, only once the person says so (publishing cannot be undone; «anúncialo» brings a left-out event back). |
+| Recurring services | *Added 2026-09-21.* Every recurring service in `church-info.md` is an ad by default: it is not always given its own calendar event (it is assumed well known), but it still happens every week. The orchestrator adds it to `lectura.json`'s `recurrentes`; `normalize.mjs` places it on its weekday and stamps `origen: "recurrente"`. Whether a same-day calendar card *is* that service, or a second event alongside it, is the orchestrator's judgment, never code's: a clear match retires the service for the week; a real doubt (an untimed or same-time card, or one that may be a second service) is asked at Checkpoint 1 rather than merged or dropped, because two services really can share a day in different rooms (e.g. a men's and a women's service). |
+| "Sigue" | *Removed 2026-09-21.* A blanket "sigue"/"todo bien" no longer answers a numbered Checkpoint 1 doubt; it now only confirms the plain, un-numbered list. Each numbered doubt needs the person's own reply, or the run does not proceed. Reason: the easy way out produced more re-processing than it saved. |
 | What blocks | Integrity errors only: an `inferido` time source, a malformed time, a duplicate slug, an override that names no event. |
 | Human answers | `overrides/<week>.json`, keyed by slug: `hora`, `lugar`, `modalidad`, `plantilla`, `omitir`; the orchestrator writes it from the person's answers. `hora: null` and `lugar: null` announce the event without a time or place, even one the sources gave. `destacado` is chosen only this way. |
 | Harness | Claude Code CLI, so the pipeline can run over SSH on a Linux VM rather than only at a desk. |

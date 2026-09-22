@@ -11,6 +11,7 @@ import {
   horaHablada,
   horaTexto,
   isHora,
+  nombreDia,
   rangoTexto,
   semanaHablada,
   semanaTexto,
@@ -55,6 +56,57 @@ function leerFechas(raw, zonaCalendario) {
     return { fecha, fechaFin: null, horaTarjeta: hora };
   }
   return null;
+}
+
+/** The date, inside the week that starts on `inicio`, of a weekday as church-info.md writes it ("martes", "Sabados"). */
+function fechaDelDia(dia, inicio) {
+  const nombre = typeof dia === 'string' ? nombreDia(dia.trim()) : null;
+  if (!nombre) return null;
+  for (let n = 0; n < 7; n++) {
+    const fecha = addDays(inicio, n);
+    if (diaSemana(fecha) === nombre) return fecha;
+  }
+  return null;
+}
+
+/**
+ * A recurring service Claude read from church-info.md, placed on its weekday of the week. Whether a
+ * calendar card is that same service is Claude's call and the person's; this never merges or drops
+ * anything. The slug comes from the day and start time so the same service keeps it from week to week.
+ */
+function eventoRecurrente(servicio, inicio, problemas) {
+  const fecha = fechaDelDia(servicio.dia, inicio);
+  if (!fecha) {
+    problemas.push(`lectura recurrentes: dia "${servicio.dia}" is not a weekday, service ignored`);
+    return null;
+  }
+  const titulo = servicio.titulo?.trim();
+  if (!titulo) {
+    problemas.push(`lectura recurrentes (${servicio.dia}): a service needs a titulo, ignored`);
+    return null;
+  }
+  let hora = null;
+  if (servicio.hora) {
+    if (isHora(servicio.hora)) hora = servicio.hora;
+    else problemas.push(`lectura recurrentes "${titulo}": hora "${servicio.hora}" is not HH:MM (24h), ignored`);
+  }
+  const lugar = servicio.lugar?.trim() || null;
+  return {
+    eventId: null,
+    origen: 'recurrente',
+    titulo,
+    base: ['servicio', slugify(diaSemana(fecha)), hora?.replace(':', '')].filter(Boolean).join('-'),
+    ministerio: servicio.ministerio?.trim() || null,
+    fecha,
+    fechaFin: null,
+    diaSemana: diaSemana(fecha),
+    hora,
+    horaFuente: hora ? 'church-info.md' : null,
+    lugar,
+    lugarFuente: lugar ? 'church-info.md' : null,
+    modalidad: 'presencial',
+    plantilla: 'estandar',
+  };
 }
 
 function descartar(raw, motivo) {
@@ -121,6 +173,7 @@ function registroFinal(e) {
   const r = {
     slug: e.slug,
     eventId: e.eventId,
+    origen: e.origen,
     titulo: e.titulo,
     ministerio: e.ministerio,
     fecha: e.fecha,
@@ -152,7 +205,8 @@ function registroFinal(e) {
  * @param {{iglesia?: object, eventos?: Record<string, object>}} [args.lectura] what Claude read from the
  *   titles and church-info.md: the church facts, and per calendar event id its clean `titulo`, `hora` +
  *   `horaFuente`, `lugar` + `lugarFuente`, `ministerio`, `modalidad`, and optional `horaNota`. The card's own
- *   time and place win over it.
+ *   time and place win over it. Its `recurrentes` are the church's recurring services of the week (`dia`,
+ *   `titulo`, and optional `hora`, `lugar`, `ministerio`), each announced as an event of its own.
  * @param {Record<string, object>} [args.overrides] human answers keyed by slug
  * @returns {{doc: object, problemas: string[]}}
  */
@@ -197,6 +251,7 @@ export function normalizeWeek({ week, calendars, lectura = {}, overrides = {} })
 
       eventos.push({
         eventId: raw.id ?? null,
+        origen: 'calendario',
         titulo,
         base: slugify(titulo) || 'evento',
         ministerio: leido.ministerio ?? null,
@@ -216,6 +271,11 @@ export function normalizeWeek({ week, calendars, lectura = {}, overrides = {} })
 
   for (const id of Object.keys(lectura.eventos ?? {})) {
     if (!ids.has(id)) problemas.push(`lectura "${id}": no calendar event has that id`);
+  }
+
+  for (const servicio of lectura.recurrentes ?? []) {
+    const evento = eventoRecurrente(servicio, inicio, problemas);
+    if (evento) eventos.push(evento);
   }
 
   eventos.sort(comparar);

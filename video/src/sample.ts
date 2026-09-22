@@ -11,7 +11,7 @@ export const sampleIglesia: Iglesia = {
   despedida: 'Dios te bendiga',
 };
 
-const base = {eventId: null, horaFuente: null, lugarFuente: 'church-info.md'} as const;
+const base = {eventId: null, origen: 'calendario', horaFuente: null, lugarFuente: 'church-info.md'} as const;
 
 export const sampleEvents: Record<Plantilla, EventRecord> = {
   estandar: {

@@ -24,8 +24,8 @@ anything to them.
 1. **Never invent an event fact.** A time, place, name or detail may only come from
    the calendar card, `church-info.md`, or the person you are working for. What is
    unknown stays absent: the ad is made without it. What is doubtful is asked once, at
-   Checkpoint 1 (step 4); the person's "sigue" accepts only what the sources already
-   say and never adds a fact.
+   Checkpoint 1 (step 4), and every numbered doubt needs its own answer: nothing is
+   designed, voiced or rendered while one is still open.
 2. All audience-facing text is Spanish (Colombia), addressing the reader as `tú`.
 3. All video is 16:9, 1920x1080, 30 fps.
 4. The church's facts (name, address, default place, ministries, call to action,
@@ -98,12 +98,18 @@ node scripts/normalize.mjs --week 2026-W39
 
 The first run writes `out/<week>/events.json` from the calendar alone: dates, slugs, and
 the time and place the card itself carries. What is left is words: the clean title, a time
-in the title or given by the church's schedule, the place, the ministry, whether the event
-is virtual. Reading words is your job, not the code's. Read `events.json` (each event's
-`eventId`, day and raw title) together with `church-info.md`, write
-`out/<week>/lectura.json` as *Reading the calendar and church-info.md* says, and run the
-same command again. It merges your reading, then an existing `overrides/<week>.json` on top
-(see Overrides).
+in the title, the place, the ministry, whether the event is virtual, and which of the
+church's recurring services this week actually has. Reading words is your job, not the
+code's. Read `events.json` (each event's `eventId`, day and raw title) together with
+`church-info.md`, write `out/<week>/lectura.json` as *Reading the calendar and
+church-info.md* says, and run the same command again. It merges your reading, then an
+existing `overrides/<week>.json` on top (see Overrides).
+
+Every recurring service of `church-info.md` is an ad by default: add it to
+`lectura.json`'s `recurrentes` list unless a calendar card of that day *is* that service
+(§ *Placing the week's recurring services*, below). Code only turns each `recurrentes`
+entry into an event on its weekday; deciding whether a card and a service are the same
+event, or two events that happen to share a day, is judgment, never code's.
 
 - Exit **2** means integrity errors: a malformed time, an untrusted `horaFuente`
   (`inferido`), a duplicate slug, an override or reading that names no event. Fix the
@@ -113,44 +119,48 @@ same command again. It merges your reading, then an existing `overrides/<week>.j
 ### 4. Checkpoint 1: confirm the week and ask about what is unclear
 
 Send ONE message, in Spanish, before any designer starts. It has four parts, and only the
-third is numbered: a number means "I need your answer", so a routine confirmation never
-gets one.
+third is numbered: a number means "I need your own answer to this one," and nothing
+proceeds while a number is unanswered.
 
 1. **The week and the calendars**: "Voy a preparar la semana del lunes 21 al domingo 27 de
    septiembre con los calendarios X y Y (7 eventos)." Mention a calendar with no events
    that week; if every calendar is empty, say so and stop: there is nothing to make.
-2. **Every event on one line**, introduced by a plain confirmation line ("Los tomé así;
-   dime si alguno está mal o si a uno le falta la hora:"): day and date, title, and the
-   time and place it will use, with where each comes from in plain words. Time:
-   `calendario` "del calendario", `titulo` "escrita en el título", `church-info.md`
-   "horario del culto", `usuario` "la que me dijiste", none "sin hora". Place: `calendario`
-   "del calendario", `titulo` "escrito en el título" (a virtual event), `church-info.md`
-   "el lugar de siempre", `usuario` "el que me dijiste", none "sin lugar". Send this list
-   even when there is nothing to ask: it is where a time taken from the church's schedule
-   gets caught.
+2. **Every event, grouped by day** (skip a day with nothing on it), introduced by a plain
+   confirmation line ("Los tomé así; dime si alguno está mal:"). Under each day, one line
+   per event: title, and the time and place it will use, with where each comes from in
+   plain words. Time: `calendario` "del calendario", `titulo` "escrita en el título",
+   `church-info.md` "horario del culto", `usuario` "la que me dijiste", none "sin hora".
+   Place: `calendario` "del calendario", `titulo` "escrito en el título" (a virtual event),
+   `church-info.md` "el lugar de siempre", `usuario` "el que me dijiste", none "sin lugar".
+   Grouping by day is what lets the person see, and correct, two events sharing one day.
+   Send this list even when there is nothing to ask.
 
    **Routine confirmations are plain lines, never numbered.** The list already shows them;
-   the confirmation line above, or one plain sentence right below the list ("Los que
-   salen sin hora van solo con la fecha, y los que no traen lugar van en el Templo"),
-   says what they mean. Each keeps what the sources say, so there is nothing to
-   decide. They are:
+   the confirmation line above says what they mean. Each keeps what the sources say, so
+   there is nothing to decide. They are:
    - events that go without a time;
    - events that go without a place;
    - events whose place is only the default (`lugarFuente: church-info.md`) with no sign of
      being elsewhere: they keep it;
-   - an event whose time comes from the church's schedule and that is plainly that
-     service (its title is just the service's name).
+   - a recurring service placed on its weekday with no calendar card of its own.
 3. **Only the real doubts**, numbered in the order of the week, each with a suggested
    answer; if there are none, leave this part out. The doubts:
+   - **Two events on one day that may be the same service**: a calendar card that shares,
+     or may share, a recurring service's time — the same time, an overlapping one, or no
+     time at all on a day that service runs. Never merge or drop either one yourself: two
+     services really can share a day in different rooms (a men's and a women's service,
+     say). Ask which it is: "¿el culto de caballeros es otro a la vez, el de siempre, o a
+     otra hora?" Suggested: two separate events, the card's own announced by date only and
+     with no place unless its own card gives one (the default place may not be where it is
+     held). If the answer is "es el mismo", the recurring service is omitted for the week
+     and its time (and place, if given) becomes the card's own, by override.
+   - **A recurring service whose usual card is missing or cancelled** this week: ask
+     whether it is happening. Suggested: leave it out this once — a wrong "yes" sends
+     people to a locked door.
    - **A time with no AM/PM** in the title (you left `hora` out of the reading):
      "¿2 de la mañana o de la tarde?" Suggested: date only.
    - **A day with two services** where the title names neither (you left `hora` out):
      which one. Suggested: date only.
-   - **An all-day event that took a service time** (`horaFuente: church-info.md`): does it
-     really start then? Ask it unless the event is plainly the service itself; a retreat,
-     a camp, an event of several days, or a service's name with something added
-     («Culto de adoración especial») may not start at the service time.
-     Suggested: date only.
    - **A place that may be elsewhere**: an event whose place is only the default
      (`lugarFuente: church-info.md`) but whose title suggests it is held elsewhere (a
      district or zone event, a convention, another church). Suggested: announce it without
@@ -162,22 +172,21 @@ gets one.
      Publishing cannot be undone once the video is out, while a left-out event comes back
      when the person says «anúncialo».
 4. **How to answer**, in one line: "Responde con el número y una palabra, por ejemplo «1
-   solo fecha, 2 omitir, 3 anúncialo, 4 sin lugar», o escríbeme con tus palabras; si algo de
-   la lista está mal, dime cuál. Si todo está bien, escribe «sigue»."
+   los dos, 2 omitir, 3 anúncialo, 4 sin lugar», o escríbeme con tus palabras. Si algo de
+   la lista está mal, dime cuál; si eso está bien, dime «todo bien» o «dale»."
 
-**«Sigue»** (or "todo bien", "dale") accepts every suggested answer and every plain line
-as it stands. A suggestion is only ever one of three things: keep what the sources say,
-drop a time or place, or leave an event out. It never adds a fact, and it never publishes
-an event nobody has explained: an unclear title, or one that looks internal, is left out,
-not announced under the title as written. The final report lists every event left out
-(step 11), so nothing disappears silently. Do not guess a time to fill a gap.
+**There is no word that answers a numbered doubt for you.** "Todo bien" or "dale" confirms
+only the plain list (part 2) as it stands; each numbered question (part 3) still needs its
+own reply. If the person answers some and leaves others open, or says "sigue" out of
+habit, ask again about the ones left open, once, naming them — never apply the suggestion
+on their behalf and never proceed with one unanswered. The final report lists every event
+left out (step 11), so nothing disappears silently.
 
 Then apply the answers yourself: write `overrides/<week>.json` (see Overrides), run step 3
-again and check that it exits 0. The person never sees a file. If an answer is unclear,
-ask again about that item only, once and rephrased; if it is still unclear, use the
-suggestion and say so in the final report. If they dropped a calendar, see step 2. A fix
-that belongs to the church for good (a missing service, the default place) is an update to
-`church-info.md`: offer it once, in plain words, after the run.
+again and check that it exits 0. The person never sees a file. If an answer is still
+unclear, ask again about that item only, once and narrower. If they dropped a calendar,
+see step 2. A fix that belongs to the church for good (a missing service, the default
+place) is an update to `church-info.md`: offer it once, in plain words, after the run.
 
 ### 5. Fan out one `ad-designer` per event
 
@@ -262,12 +271,11 @@ output is disposable and is never edited by hand: change the source and render a
 
 In Spanish, in plain words: what was produced and where (the week's folder under `out/`),
 then a list headed **"Revisa esto antes de publicar"** with what the person must know:
-the events made without a time or place, the events left out (by their answer or by
-"sigue"; tell them that «anúncialo» brings one back), any answer you applied for them,
-whether the week was rendered silent (and how to retry: they can ask you to voice it
-again; the command is `node scripts/tts.mjs --week <week>`), the designers' `avisos` put
-in plain words, and any word the voice may mispronounce. Always end with the reminder to
-check every time and date in the images.
+the events made without a time or place, the events left out (by their own answer; tell
+them that «anúncialo» brings one back), whether the week was rendered silent (and how to
+retry: they can ask you to voice it again; the command is `node scripts/tts.mjs --week
+<week>`), the designers' `avisos` put in plain words, and any word the voice may
+mispronounce. Always end with the reminder to check every time and date in the images.
 
 ## Reading the calendar and church-info.md
 
@@ -299,13 +307,14 @@ do not say; the code never fills it in.
   `2pm`, a `(Ministerio) -` prefix), wording and spelling otherwise as written. Leave it
   out to keep the calendar's title.
 - **`hora`** (24 h `HH:MM`) **and `horaFuente`**: only when the card has no time (the card
-  always wins). `titulo` when the title states it with AM/PM or the period of the day
-  (`2pm`, "a las 7 de la noche"); `church-info.md` when a recurring service of that weekday
-  is plainly the event's, and then its *start* time. On a day with two services, the one
-  the title names or clearly is. A bare "7:30" or "a las 7", or an event that may not start
-  at the service time (a retreat, a camp, several days, a service's name with something
-  added), is not a time: leave `hora` out and ask at Checkpoint 1. Never write
-  `inferido`; it blocks. `horaNota` says in plain words why there is no time, if useful.
+  always wins), and only from `titulo`: the title states it with AM/PM or the period of
+  the day (`2pm`, "a las 7 de la noche"). A card's time never comes from `church-info.md`
+  here — an untimed card on a service day is not merged with the service's time; it is
+  either the same event as the service (an overlap doubt at Checkpoint 1, resolved by an
+  override, see § *Placing the week's recurring services*) or its own event with no time.
+  A bare "7:30" or "a las 7" is not a time: leave `hora` out and ask at Checkpoint 1. Never
+  write `inferido`; it blocks. `horaNota` says in plain words why there is no time, if
+  useful.
 - **`lugar` and `lugarFuente`**: only when the card has no place. `titulo` for a virtual
   event ("Zoom" or "Virtual"); `church-info.md` for the default place, when nothing
   suggests the event is elsewhere. If the title suggests elsewhere (a district or zone
@@ -318,6 +327,53 @@ Cover every event. One you skip is announced with its calendar title and card fa
 and a `eventId` that names no event is an error. The limit is hard rule 1: a fact you
 cannot point to on the card, in the title or in `church-info.md` stays out, and a doubt
 becomes a numbered question at Checkpoint 1 with the safe suggestion.
+
+### Placing the week's recurring services
+
+`church-info.md`'s recurring services are ads by default: each one that has no calendar
+card of its own goes in `lectura.json`'s `recurrentes`, an array read the same way as
+`eventos`, one entry per service:
+
+```json
+{
+  "recurrentes": [
+    {"dia": "martes", "titulo": "Culto dirigido por Damas Dorcas", "hora": "18:45", "lugar": "Templo", "ministerio": "Damas Dorcas"}
+  ]
+}
+```
+
+`dia` is the weekday, in any spelling `church-info.md` uses ("Sabados", "sábado",
+"SABADO"); code turns it into this week's date, and it is the only required key besides
+`titulo`. `titulo` names the service so the ad and the script line have something to say —
+write it from the church's "Dirigido por" or tema line if it has one ("Culto dirigido por
+Damas Dorcas"), else from the service's own name. `hora`, `lugar` and `ministerio` come
+straight from `church-info.md`; leave one out if the file does not say it, the same as any
+other event. A `recurrentes` entry that lacks a `titulo`, or whose `dia` is not a weekday
+`normalize.mjs` recognizes, is a loud problem (exit 2), not a silently dropped service.
+
+**Deciding whether a card is the service, or a second event on the same day, is your
+judgment — never code's.** For every recurring service, look at that weekday's calendar
+cards:
+
+- **No card looks like it**: add the service to `recurrentes` as above. This is the
+  ordinary case — most weeks nothing marks the service on the calendar, because it is
+  assumed well known but still happens.
+- **One card is plainly it** — the same time (or close), or a title that is just the
+  service's own name («Culto de jóvenes», «Ayuno»): that card *is* the event. Leave the
+  service out of `recurrentes` and read the card as any other event (above); its own time
+  and place win.
+- **A card on that day might be the service, or might be a second one** — no time, a
+  different time, or a title that names a group rather than repeating the service's own
+  name («Culto de caballeros» on a day whose service is not directed by one particular
+  group): do **not** decide. Add the service to `recurrentes` *and* leave the card as its
+  own event; this is what puts both under the same day at Checkpoint 1, where the
+  numbered "two events on one day" doubt asks the person. Two services really can run at
+  the same time in different rooms (a men's and a women's service, say), so guessing
+  either way risks a fact none of the sources give.
+- **A card that would have been the service is cancelled, or a service that usually has
+  one has none this week**: still add it to `recurrentes` (`church-info.md` says it runs),
+  and raise the "missing or cancelled" doubt at Checkpoint 1 rather than silently
+  advertising or silently dropping it.
 
 ## Overrides
 
@@ -346,6 +402,13 @@ what stops a question being asked twice. All keys are optional:
 In the person's words: "solo con la fecha" is `hora: null`, "sin lugar" is `lugar: null`,
 "omítelo" is `omitir: true`, "anúncialo" removes that `omitir`, and a time or place they
 give is `hora` or `lugar`.
+
+A recurring service's slug is `servicio-<día>` or, when it has a time, `servicio-<día>-<hhmm>`
+(e.g. `servicio-sabado-1845`) — stable from week to week, never from its title, so
+`omitir: true` on it reliably drops just that one service. When the person answers "es el
+mismo" to an overlap doubt (§ *Placing the week's recurring services*), write both:
+`omitir: true` on the recurring service's slug, and `hora` (and `lugar`, if given) on the
+calendar card's own slug, so the card alone carries the service's time.
 
 After editing an override, run step 3 again, then rewrite that event's line in `guion.md`
 (and re-run its designer if the template changed), validate, show the changed lines

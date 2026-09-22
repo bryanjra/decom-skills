@@ -20,10 +20,14 @@ number is the bolder one).
 | **2 `tematico`** | Not youth, and either `plantilla` is `destacado` (a person marked it special) or the title names a themed edition or a subject of its own (a family service, a campaign, a retreat), not a regular service under its usual name | The subject shown as a drawn motif |
 | **1 `institucional`** | Everything else, above all a regular service under its usual name (a prayer service, Sunday school) | The corporate brand manual, as written |
 
-A `horaFuente` of `church-info.md` means the time came from the church's recurring
-services. It is a hint of a regular service, not proof: an untimed event inherits the time
-of the service on its weekday even when it is a themed edition of it (ad2 is a family
-service in the Sunday-school slot, and it is `tematico`).
+An `origen` of `recurrente` means there is no calendar card at all: the church's own
+recurring schedule placed this event, so it is by definition a regular service under its
+usual name — `institucional`, unless `ministerio` names a youth group. A card
+(`origen: "calendario"`) is never downgraded by its `horaFuente`: even one that took the
+recurring service's own time (the orchestrator resolved an overlap doubt that way) has its
+own title, and a themed edition of the regular slot is still judged by that title, the same
+as any other event (ad2 is a family service in the Sunday-school slot, and it is
+`tematico`).
 
 Audience beats recurrence: a weekly youth prayer hour is still `juvenil` (reference ad3).
 If the title's meaning is unclear (a nickname, an acronym) do not guess it: judge by

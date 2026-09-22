@@ -6,6 +6,8 @@ export type Plantilla = 'destacado' | 'estandar' | 'virtual';
 export type EventRecord = {
   slug: string;
   eventId: string | null;
+  /** `calendario`: a card of the church's calendar. `recurrente`: one of the church's recurring services, with no card. */
+  origen: 'calendario' | 'recurrente';
   titulo: string;
   ministerio: string | null;
   fecha: string;
