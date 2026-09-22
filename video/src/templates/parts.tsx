@@ -71,23 +71,21 @@ export const Backdrop: React.FC<{zoom?: boolean}> = ({zoom = false}) => {
 
 /**
  * Cached-image counterpart to a hand-drawn SVG/CSS motif (creative-ads.md § 6): a
- * pre-generated, reviewed background image instead of code-drawn shapes. Full-bleed, a
- * multiply-blend tint locks its tone to the brand palette rather than trusting the
- * generator's own color, and a CSS mask fades it to transparent on `fadeFrom`'s side so a
- * flat field shows through there (for a corner logo or headline that must sit on a flat area).
+ * pre-generated, reviewed background image instead of code-drawn shapes. Always full-bleed
+ * (boxing it to a corner read as a floating medallion and was rejected), a multiply-blend
+ * tint locks its tone to the brand palette rather than trusting the generator's own color,
+ * and a CSS mask fades it to transparent on `fadeFrom`'s side so a flat field shows through
+ * there (for a corner logo or headline that must sit on a flat area).
  */
-export const MotifImage: React.FC<{src: string; fadeFrom?: 'top' | 'left' | 'right' | 'radial' | 'none'}> = ({src, fadeFrom = 'top'}) => {
+export const MotifImage: React.FC<{src: string; fadeFrom?: 'top' | 'left' | 'right' | 'none'}> = ({src, fadeFrom = 'top'}) => {
   const {u, durationInFrames} = useLayout();
   const frame = useCurrentFrame();
   const enter = interpolate(frame, [0, 16], [0, 1], {extrapolateRight: 'clamp'});
   const drift = interpolate(frame, [0, durationInFrames], [0, -10], {extrapolateRight: 'clamp'});
-  const fades: Record<'top' | 'left' | 'right' | 'radial', string> = {
+  const fades: Record<'top' | 'left' | 'right', string> = {
     top: 'linear-gradient(to bottom, transparent 0%, transparent 28%, black 52%, black 100%)',
     left: 'linear-gradient(to right, transparent 0%, transparent 20%, black 42%, black 100%)',
     right: 'linear-gradient(to left, transparent 0%, transparent 20%, black 42%, black 100%)',
-    // For a motif boxed on one side rather than full-bleed: fades all four edges so the box
-    // itself never shows, instead of only the edge a directional fade names.
-    radial: 'radial-gradient(closest-side, black 62%, black 78%, transparent 100%)',
   };
   const mask = fadeFrom === 'none' ? {} : {WebkitMaskImage: fades[fadeFrom], maskImage: fades[fadeFrom]};
   return (

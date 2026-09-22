@@ -118,14 +118,19 @@ event, or two events that happen to share a day, is judgment, never code's.
 
 ### 4. Checkpoint 1: confirm the week and ask about what is unclear
 
-Send ONE message, in Spanish, before any designer starts. It has four parts, and only the
-third is numbered: a number means "I need your own answer to this one," and nothing
+Send ONE message, in Spanish, before any designer starts. It has five parts, and only the
+fourth is numbered: a number means "I need your own answer to this one," and nothing
 proceeds while a number is unanswered.
 
 1. **The week and the calendars**: "Voy a preparar la semana del lunes 21 al domingo 27 de
    septiembre con los calendarios X y Y (7 eventos)." Mention a calendar with no events
    that week; if every calendar is empty, say so and stop: there is nothing to make.
-2. **Every event, grouped by day** (skip a day with nothing on it), introduced by a plain
+2. **The background images**, one line, every run — never silently reuse without asking:
+   "Para las imágenes de fondo uso las mismas de siempre, ya revisadas; si quieres unas
+   nuevas para esta semana, dímelo." This is not a numbered doubt (it risks no one's
+   Sunday, only money): if they say nothing, keep the saved ones, the same way an unpaid
+   voice is never regenerated on a guess. If they ask for fresh ones, see step 5.
+3. **Every event, grouped by day** (skip a day with nothing on it), introduced by a plain
    confirmation line ("Los tomé así; dime si alguno está mal:"). Under each day, one line
    per event: title, and the time and place it will use, with where each comes from in
    plain words. Time: `calendario` "del calendario", `titulo` "escrita en el título",
@@ -143,7 +148,7 @@ proceeds while a number is unanswered.
    - events whose place is only the default (`lugarFuente: church-info.md`) with no sign of
      being elsewhere: they keep it;
    - a recurring service placed on its weekday with no calendar card of its own.
-3. **Only the real doubts**, numbered in the order of the week, each with a suggested
+4. **Only the real doubts**, numbered in the order of the week, each with a suggested
    answer; if there are none, leave this part out. The doubts:
    - **Two events on one day that may be the same service**: a calendar card that shares,
      or may share, a recurring service's time — the same time, an overlapping one, or no
@@ -171,7 +176,7 @@ proceeds while a number is unanswered.
      it; never guess its meaning. Suggested: leave it out, whichever of the two it is.
      Publishing cannot be undone once the video is out, while a left-out event comes back
      when the person says «anúncialo».
-4. **How to answer**, in one line: "Responde con el número y una palabra, por ejemplo «1
+5. **How to answer**, in one line: "Responde con el número y una palabra, por ejemplo «1
    los dos, 2 omitir, 3 anúncialo, 4 sin lugar», o escríbeme con tus palabras. Si algo de
    la lista está mal, dime cuál; si eso está bien, dime «todo bien» o «dale»."
 
@@ -181,7 +186,7 @@ back, before anything else happens — it is still one uninterrupted checkpoint 
 person, not two separate ones.
 
 **There is no word that answers a numbered doubt for you.** "Todo bien" or "dale" confirms
-only the plain list (part 2) as it stands; each numbered question (part 3) still needs its
+only the plain list (part 3) as it stands; each numbered question (part 4) still needs its
 own reply. If the person answers some and leaves others open, or says "sigue" out of
 habit, ask again about the ones left open, once, naming them — never apply the suggestion
 on their behalf and never proceed with one unanswered. The final report lists every event
@@ -198,8 +203,22 @@ place) is an update to `church-info.md`: offer it once, in plain words, after th
 One subagent per event, all in a single message so they run in parallel. Each prompt
 is just the `week` and the `slug`; they read everything else themselves. They deliver
 `video/src/ads/<slug>.tsx` and a JSON manifest fragment (`slug`, `plantilla`, `nivel`,
-`avisos`). They write no script and make no audio, and they cannot ask the person
+`motif`, `avisos`). They write no script and make no audio, and they cannot ask the person
 anything. Collect the fragments; gather every `avisos` entry for the final report.
+
+**If the person asked, at Checkpoint 1, for fresh background images this week**: collect
+every fragment's `motif` into the set of cached filenames actually in play (skip `null`),
+and regenerate exactly those — never one nothing used. One ElevenLabs image request per
+filename, using the style brief in `creative-ads.md` § 6 (flat-vector-illustration-style,
+deep-navy background, an anonymous silhouette motif in cyan/pale-blue with a warm gold
+glow, no text, no logo, generous negative space in the upper two-thirds) plus that
+category's subject (a family, a prayer, young people, a campaign crowd, worship, Sunday
+school, a baptism). Review each result the same way the first set was reviewed — no text,
+no logo echo (creative-ads.md § 6's "never echo the logo"), a generic, anonymous scene —
+before overwriting `video/public/motifs/<filename>`. This happens once, here, off the
+per-event critical path, the same way TTS is centralized rather than run per event
+(`CLAUDE.md` hard rule 4); a designer never generates or edits these images either way.
+Note in the final report (step 11) that this week's motifs are new and worth a look.
 
 ### 6. Write the week's narration
 
@@ -279,8 +298,9 @@ then a list headed **"Revisa esto antes de publicar"** with what the person must
 the events made without a time or place, the events left out (by their own answer; tell
 them that «anúncialo» brings one back), whether the week was rendered silent (and how to
 retry: they can ask you to voice it again; the command is `node scripts/tts.mjs --week
-<week>`), the designers' `avisos` put in plain words, and any word the voice may
-mispronounce. Always end with the reminder to check every time and date in the images.
+<week>`), whether this week's background images are new (step 5) and worth a look, the
+designers' `avisos` put in plain words, and any word the voice may mispronounce. Always end
+with the reminder to check every time and date in the images.
 
 ## Reading the calendar and church-info.md
 

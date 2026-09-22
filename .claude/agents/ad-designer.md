@@ -58,9 +58,14 @@ Only this JSON, in a code block, and one line before it if something needs a per
   "slug": "<slug>",
   "plantilla": "<event.plantilla>",
   "nivel": "institucional | tematico | juvenil",
+  "motif": "<cached filename, e.g. jovenes.png> | null",
   "avisos": []
 }
 ```
+
+`motif` is the cached `video/public/motifs/` filename you placed with `MotifImage`
+(`creative-ads.md` § 6), or `null` if your ad has none. You never generate, edit or invent
+one — pick from the checked-in set only.
 
 `avisos` lists anything a human should look at before publishing: a validate notice you
 could not resolve, a word shown on screen that a reader might misread, a `nivel` that
