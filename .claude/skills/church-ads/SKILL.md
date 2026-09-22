@@ -129,7 +129,13 @@ proceeds while a number is unanswered.
    "Para las imágenes de fondo uso las mismas de siempre, ya revisadas; si quieres unas
    nuevas para esta semana, dímelo." This is not a numbered doubt (it risks no one's
    Sunday, only money): if they say nothing, keep the saved ones, the same way an unpaid
-   voice is never regenerated on a guess. If they ask for fresh ones, see step 5.
+   voice is never regenerated on a guess. If they ask for fresh ones, see step 5. Not
+   numbered does not mean rhetorical: this line needs a real chance at a reply before
+   step 5 starts, the same pause the numbered doubts already force — never state it and
+   dispatch designers in the same turn (a real run did exactly this once: the line was
+   said, but nothing paused for it, so it was never actually asked). If there are numbered
+   doubts this run, ask this alongside them in the same interactive call so one pause
+   covers both.
 3. **Every event, grouped by day** (skip a day with nothing on it), introduced by a plain
    confirmation line ("Los tomé así; dime si alguno está mal:"). Under each day, one line
    per event: title, and the time and place it will use, with where each comes from in
@@ -143,7 +149,10 @@ proceeds while a number is unanswered.
    **Routine confirmations are plain lines, never numbered.** The list already shows them;
    the confirmation line above says what they mean. Each keeps what the sources say, so
    there is nothing to decide. They are:
-   - events that go without a time;
+   - events that go without a time — **except** a recurring-service card confirmed as the
+     service itself (§ *Placing the week's recurring services*, "one card is plainly it")
+     that has no time of its own: `church-info.md` already knows this one, so that is a
+     numbered doubt below, not routine;
    - events that go without a place;
    - events whose place is only the default (`lugarFuente: church-info.md`) with no sign of
      being elsewhere: they keep it;
@@ -159,6 +168,15 @@ proceeds while a number is unanswered.
      with no place unless its own card gives one (the default place may not be where it is
      held). If the answer is "es el mismo", the recurring service is omitted for the week
      and its time (and place, if given) becomes the card's own, by override.
+   - **A recurring-service card with no time of its own**: a card already confirmed as
+     the service itself (§ *Placing the week's recurring services*, "one card is plainly
+     it") — identity is not in doubt here — but the card carries no time and the title
+     gives none either. Do not let this fall to date-only by default: `church-info.md`
+     states the service's usual time, and that is a known fact, not a guess (this is
+     exactly what happened with a real Saturday fast card in 2026-W39: no time on the
+     card, though `church-info.md` already gives 7:00 a. m. for it). Ask: "¿el ayuno es a
+     la hora de siempre, las siete de la mañana, o prefieres anunciarlo solo con la
+     fecha?" Suggested: use the service's usual time from `church-info.md`, by override.
    - **A recurring service whose usual card is missing or cancelled** this week: ask
      whether it is happening. Suggested: leave it out this once — a wrong "yes" sends
      people to a locked door.
@@ -334,12 +352,15 @@ do not say; the code never fills it in.
 - **`hora`** (24 h `HH:MM`) **and `horaFuente`**: only when the card has no time (the card
   always wins), and only from `titulo`: the title states it with AM/PM or the period of
   the day (`2pm`, "a las 7 de la noche"). A card's time never comes from `church-info.md`
-  here — an untimed card on a service day is not merged with the service's time; it is
-  either the same event as the service (an overlap doubt at Checkpoint 1, resolved by an
-  override, see § *Placing the week's recurring services*) or its own event with no time.
-  A bare "7:30" or "a las 7" is not a time: leave `hora` out and ask at Checkpoint 1. Never
-  write `inferido`; it blocks. `horaNota` says in plain words why there is no time, if
-  useful.
+  here — an untimed card on a service day is not merged with the service's time in the
+  reading itself. What happens next depends on identity: a card that might or might not
+  be the recurring service is the overlap doubt at Checkpoint 1 (§ *Placing the week's
+  recurring services*); a card that is plainly the same event as the service and still has
+  no time is the separate "recurring-service card with no time of its own" doubt (step 4).
+  Either way the person confirms it and it lands as an override — never a silent guess
+  here, and never a silent "sin hora" either. A bare "7:30" or "a las 7" is not a time:
+  leave `hora` out and ask at Checkpoint 1. Never write `inferido`; it blocks. `horaNota`
+  says in plain words why there is no time, if useful.
 - **`lugar` and `lugarFuente`**: only when the card has no place. `titulo` for a virtual
   event ("Zoom" or "Virtual"); `church-info.md` for the default place, when nothing
   suggests the event is elsewhere. If the title suggests elsewhere (a district or zone
@@ -367,7 +388,7 @@ card of its own goes in `lectura.json`'s `recurrentes`, an array read the same w
 ```json
 {
   "recurrentes": [
-    {"dia": "martes", "titulo": "Culto dirigido por Damas Dorcas", "hora": "18:45", "lugar": "Templo", "ministerio": "Damas Dorcas"}
+    {"dia": "martes", "titulo": "Culto", "hora": "18:45", "lugar": "Templo", "ministerio": "Damas Dorcas"}
   ]
 }
 ```
@@ -375,11 +396,29 @@ card of its own goes in `lectura.json`'s `recurrentes`, an array read the same w
 `dia` is the weekday, in any spelling `church-info.md` uses ("Sabados", "sábado",
 "SABADO"); code turns it into this week's date, and it is the only required key besides
 `titulo`. `titulo` names the service so the ad and the script line have something to say —
-write it from the church's "Dirigido por" or tema line if it has one ("Culto dirigido por
-Damas Dorcas"), else from the service's own name. `hora`, `lugar` and `ministerio` come
-straight from `church-info.md`; leave one out if the file does not say it, the same as any
-other event. A `recurrentes` entry that lacks a `titulo`, or whose `dia` is not a weekday
-`normalize.mjs` recognizes, is a loud problem (exit 2), not a silently dropped service.
+but think about what each field already says before folding one into another. When a tema
+line gives the service its own name, use it ("Oración y Enseñanza" -> "Culto de oración y
+enseñanza"). A bare "Dirigido por X" is not a name for the service, it is who leads it —
+that belongs in `ministerio`, not stitched into `titulo` as "Culto dirigido por X": the
+`ministerio` you set is what puts the leader's name on the ad, once, as its own tag, and
+what lets the narration say who leads it, once, in the leader's own sentence (script.md).
+Writing "dirigido por X" into `titulo` too makes the ad repeat the ministry's name against
+its own tag and say "dirigido por" on screen right where the voice is about to say it again
+out loud. With nothing but a "Dirigido por" line, `titulo` is just the plain service name —
+"Culto" here, or whatever this church's recurring slot is generically called — dropping
+"dirigido por X" is the invariant, not any particular replacement word: a slug that
+already has a bespoke `video/src/ads/<slug>.tsx` (check before writing `titulo` for a
+returning `recurrentes` entry) may lean on `titulo`'s own words for its layout — a giant
+last word pulled from it for a youth-styled ad, say — and still needs that word present,
+just not the "dirigido por" phrase in front of it ("Culto Jóvenes", not "Culto dirigido por
+Jóvenes"). Apply the same check anywhere else a fact could land twice: before adding a word
+to `titulo` (or a custom `headline`), ask whether `ministerio`, the date/time/place row or
+the narration already says it, and leave it out of one of them if so. `hora`, `lugar` and
+`ministerio`
+come straight from `church-info.md`; leave one out if the file does not say it, the same as
+any other event. A `recurrentes` entry that lacks a `titulo`, or whose `dia` is not a
+weekday `normalize.mjs` recognizes, is a loud problem (exit 2), not a silently dropped
+service.
 
 **Deciding whether a card is the service, or a second event on the same day, is your
 judgment — never code's.** For every recurring service, look at that weekday's calendar
@@ -391,7 +430,10 @@ cards:
 - **One card is plainly it** — the same time (or close), or a title that is just the
   service's own name («Culto de jóvenes», «Ayuno»): that card *is* the event. Leave the
   service out of `recurrentes` and read the card as any other event (above); its own time
-  and place win.
+  and place win. If it carries no time of its own, do not let it fall silently to "sin
+  hora" — that throws away a time `church-info.md` already gives for this exact service.
+  Raise it instead as the "recurring-service card with no time of its own" doubt at
+  Checkpoint 1 (step 4).
 - **A card on that day might be the service, or might be a second one** — no time, a
   different time, or a title that names a group rather than repeating the service's own
   name («Culto de caballeros» on a day whose service is not directed by one particular

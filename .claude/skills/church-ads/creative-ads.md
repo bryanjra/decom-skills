@@ -91,9 +91,12 @@ does not change). The energy comes from scale, angle, shape and motion, not from
 
 - **Type.** Uppercase, `brand.font.display`, weight 800, tight tracking. One word at
   `brand.type.hero` scale or larger and everything else far smaller (ad1's giant
-  "Jóvenes"). A `skewX` of a few degrees and an outline (`WebkitTextStroke`) on the giant
-  word add attitude. Brush lettering is not available: only Montserrat is vendored, and
-  fonts cannot be imported.
+  "Jóvenes"). A `skewX` of a few degrees on the giant word adds attitude; the weight and
+  scale alone carry the rest — do not fake an outline with `WebkitTextStroke`: at this
+  scale and weight Chromium's text-stroke renders spurious triangular seams inside the
+  letterforms (self-intersecting stroke geometry at sharp glyph vertices), and
+  `ad-source.mjs` rejects it (`text-stroke`) for exactly that reason. Brush lettering is
+  not available: only Montserrat is vendored, and fonts cannot be imported.
 - **Color.** Keep at least 60% of the frame on the dark field. Gold and cyan are the only
   pops. Where the examples use pink or orange, use gold or cyan.
 - **Motif.** The cached `jovenes.png` or `evangelismo.png` image (§ 6), placed full-bleed

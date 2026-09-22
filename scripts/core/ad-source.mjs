@@ -37,6 +37,12 @@ const REGLAS = [
     mensaje: 'CSS transitions and animations do not render; drive motion with useCurrentFrame() + interpolate()',
   },
   {
+    regla: 'text-stroke',
+    patrones: [/webkitTextStroke/i, /-webkit-text-stroke/i, /\btext-stroke\s*:/i],
+    mensaje:
+      'a faked text outline renders broken in Chromium at hero scale (spurious triangular seams at sharp glyph vertices); use weight, scale and skew instead, not a stroke',
+  },
+  {
     regla: 'duracion-fija',
     patrones: [/\bdurationInFrames\s*[=:]\s*\d+/],
     mensaje: 'scene length must come from the voiceover via calculateMetadata, not a frame count',

@@ -45,6 +45,12 @@ test('a hard-coded frame count for scene length is an error', () => {
   assert.deepEqual(reglas(`export const durationInFrames = 300;`), ['duracion-fija']);
 });
 
+test('a faked text outline via text-stroke is an error: it renders broken at hero scale', () => {
+  assert.deepEqual(reglas(`const s = {WebkitTextStroke: '1.5px gold'};`), ['text-stroke']);
+  assert.deepEqual(reglas(`const s = {'-webkit-text-stroke': '2px red'};`), ['text-stroke']);
+  assert.deepEqual(reglas(`const s = {textStroke: '2px red'};`), []);
+});
+
 test('findings carry the line number', () => {
   const r = checkAdSource(`const a = 1;\nconst t = '7:00 p. m.';\n`);
   assert.equal(r.errores[0].linea, 2);

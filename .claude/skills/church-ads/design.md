@@ -30,8 +30,8 @@ delivery, it does not just look wrong.
   override changes the layout without anyone rewriting the ad. `destacado` is only
   ever chosen by an override; a designer does not pick it.
 - Custom composition is allowed, built from `video/src/templates/parts.tsx`
-  (`Backdrop`, `Logo`, `CornerLogo`, `MinistryTag`, `Headline`, `EventInfo`, `Cta`, `Reveal`)
-  as long as every rule below still holds.
+  (`Backdrop`, `Logo`, `CornerLogo`, `MinistryTag`, `Headline`, `EventInfo`, `Cta`, `Reveal`,
+  `MotifImage`, `fitSize`, `lugarVisible`) as long as every rule below still holds.
 - A `headline` prop on a template may replace the title, but only with text built
   from `event.titulo` / `event.ministerio`. No tagline that `events.json` does not
   contain.
@@ -63,6 +63,15 @@ Every fact on screen comes from `event` or `iglesia`, and nothing else exists.
   skips it in the narration — repeating "Templo" on every ad is filler. Get it through
   `lugarVisible(event, iglesia)` (`templates/parts.tsx`), never `event.lugar` directly,
   whether in `EventInfo` or in a custom pill/chip.
+- Don't let `event.titulo` restate what `event.ministerio` already shows: when a
+  ministry is set, its `MinistryTag` is the ad's own audience tag and the narration
+  names it too (script.md), each once — a title built as "Culto dirigido por X" then
+  says the ministry's name a second time on the same frame, and puts "dirigido por" on
+  screen right where the voice is about to say it out loud. That phrasing belongs to the
+  spoken line, not the image. This is the same filler the place rule above avoids, just
+  for who leads the event instead of where it is; a `headline` prop built at read time
+  (`lectura.json`'s `recurrentes`, see the skill) is where this gets decided, not the ad
+  component.
 - Never type a date, weekday, month, clock time or place into the file, even
   "just for the layout". Use the sample data in `video/src/sample.ts` to preview.
 - No time (`hora` is `null`): the time row is simply absent. Do not write "hora por
@@ -124,4 +133,5 @@ The check reads every line, comments included, so keep comments free of literals
 | `fecha-literal` | a weekday, or `de septiembre` — render `event.fechaTexto` |
 | `color-literal` | `#RRGGBB`, `rgb(`, `hsl(` — use tokens |
 | `css-animacion` | `transition:`, `animation:`, `@keyframes`, `animate-*` |
+| `text-stroke` | `WebkitTextStroke`, `-webkit-text-stroke` — fakes an outline; renders broken seams at hero scale (§ Motion says why), use weight/scale/skew instead |
 | `duracion-fija` | `durationInFrames={90}` |
