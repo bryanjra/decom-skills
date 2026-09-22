@@ -227,6 +227,17 @@ node_modules/
 .remotion/
 *.tsbuildinfo
 
+# Ad components: an ad-designer subagent rewrites video/src/ads/<slug>.tsx from
+# out/<week>/events.json on every run, unconditionally (see .claude/agents/ad-designer.md),
+# so they are per-run output, not hand-maintained source, same as out/. Remotion's bundler
+# needs them inside video/src/ to resolve, so they stay in place but out of git. The
+# ejemplo-*.tsx files are the real, hand-written reference components and stay tracked;
+# registry.gen.ts is mechanically rebuilt from whatever .tsx files exist locally
+# (`node scripts/gen-registry.mjs`), so it is regenerable too.
+/video/src/ads/*.tsx
+!/video/src/ads/ejemplo-*.tsx
+/video/src/ads/registry.gen.ts
+
 # examples
 ad-examples
 # git worktrees
