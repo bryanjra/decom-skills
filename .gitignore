@@ -238,6 +238,8 @@ node_modules/
 !/video/src/ads/ejemplo-*.tsx
 /video/src/ads/registry.gen.ts
 
+/overrides/
+
 # examples
 ad-examples
 # git worktrees
