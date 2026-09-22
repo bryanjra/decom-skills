@@ -18,6 +18,11 @@ What is useful to say:
   calendar (it is assumed everyone already knows about it, but it still happens); when a
   calendar event turns out to be that same service, Claude asks you and uses the card
   instead.
+- Optional: how you want the narration to sound. Claude reads this too, so if you have a
+  house style — how to name who leads a service ("dirigido por el comité de X"), whether
+  to repeat the usual place in every line or only when it is different — write it here in
+  your own words and Claude follows it. Say nothing and Claude uses `script.md`'s plain
+  defaults.
 
 Example:
 

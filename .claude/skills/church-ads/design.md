@@ -100,6 +100,14 @@ Every fact on screen comes from `event` or `iglesia`, and nothing else exists.
 - A long title must still fit: use `Headline` (it applies `fitSize`) or do the same.
 - Keep content inside the `brand.space.xl` margin of the frame.
 - Text sits on a solid or shaded area, never straight on a busy shape.
+- A decorative element placed near text (an accent mark, a spark, a flourish) must sit
+  in the flow beside or around the text's own box, not at a fixed pixel offset guessed
+  from one title. `event.titulo` comes from `events.json` and its length changes every
+  week (an override or a `church-info.md` edit can make a recurring service's title
+  longer or shorter); an offset tuned for one title's line count will drift into
+  neighbouring text for another. This broke a real week's render (2026-W39): a "spark"
+  pinned above a giant subject word intruded on the lead-in line once the lead-in grew
+  longer.
 
 ## What `validate.mjs` rejects in an ad file
 

@@ -175,6 +175,11 @@ proceeds while a number is unanswered.
    los dos, 2 omitir, 3 anúncialo, 4 sin lugar», o escríbeme con tus palabras. Si algo de
    la lista está mal, dime cuál; si eso está bien, dime «todo bien» o «dale»."
 
+If the interactive question tool caps how many numbered doubts fit in one call (Claude
+Code's `AskUserQuestion` allows at most 4), split them across consecutive calls back to
+back, before anything else happens — it is still one uninterrupted checkpoint to the
+person, not two separate ones.
+
 **There is no word that answers a numbered doubt for you.** "Todo bien" or "dale" confirms
 only the plain list (part 2) as it stands; each numbered question (part 3) still needs its
 own reply. If the person answers some and leaves others open, or says "sigue" out of
@@ -321,7 +326,12 @@ do not say; the code never fills it in.
   event, a convention, another church), leave `lugar` out and ask at Checkpoint 1.
 - **`modalidad`**: `virtual` when the title says Zoom, virtual or online; otherwise omit.
 - **`ministerio`**: from a `(Ministerio) -` prefix, or the church's ministry the title
-  names; omit when there is none or it is ambiguous.
+  names; omit when there is none or it is ambiguous. A name in `church-info.md`'s
+  `Ministerios` line is not automatically a standing group — one congregation's list
+  briefly included "Escuela Dominical", which was really just that recurring service's
+  own name, not a committee that leads anything. If a "ministry" only ever names one
+  recurring service and nothing else, it is worth confirming with the person rather than
+  tagging every mention of that service as led by it.
 
 Cover every event. One you skip is announced with its calendar title and card facts alone,
 and a `eventId` that names no event is an error. The limit is hard rule 1: a fact you

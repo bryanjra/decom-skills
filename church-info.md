@@ -2,7 +2,7 @@
     Nombre: IPUC Envigado Central
     Direccion: Dg. 30A # 33A Sur - 45, Las Flores, Envigado
     Lugar por defecto: Templo
-    Ministerios: Jóvenes, Adolescentes, Familias, Escuela Dominical, Alabanza, Evangelismo, Damas Dorcas
+    Ministerios: Jóvenes, Adolescentes, Familias, Alabanza, Evangelismo, Damas Dorcas
     Llamado a la accion: Te esperamos
     Despedida: Dios te bendiga
 
@@ -21,4 +21,13 @@
     Domingos (1er servicio - Culto evangelistico): Dirigido por Evangelismo
     Domingos (2do servicio - Escuela dominical): Escuela dominical (tema)
     Sabados (Ayuno): Ayuno general (tema)
+
+# Estilo de los anuncios
+    Cuando menciones un ministerio, di "dirigido por el comité de X" (no solo
+    "dirigido por X" ni el nombre solo) — salvo que repita una palabra que el
+    título del evento ya dice (por ejemplo, para el ayuno di "el ayuno, dirigido
+    por el comité de Evangelismo", no "el Ayuno Evangelismo, dirigido por el
+    comité de Evangelismo").
+    No repitas "en el Templo" en cada evento: es el lugar de siempre, así que
+    solo se menciona el lugar cuando es distinto (virtual, u otra sede).
 

@@ -41,6 +41,11 @@ place.
 
 - One or two spoken sentences: what (the title, and `ministerio` if there is one), the
   day (`diaSemana`), the time if there is one, the place if there is one.
+- `church-info.md` may carry its own style notes (how it wants a ministry named — some
+  churches say "dirigido por el comité de X" rather than a bare "dirigido por X" — or
+  whether to state the usual place every time). Follow them; absent one, name the
+  ministerio plainly and state the place whenever the event has one, per the rules below.
+  Never invent a phrasing style the file does not ask for.
 - Put the parts in whatever order suits the sentence. Do not use one template for every
   event: vary how each line opens, and let the lines lead into each other ("El lunes…",
   "Después, el miércoles…", "Y el viernes…"). No two neighbouring events open with the
@@ -78,6 +83,10 @@ viernes".
 - `modalidad: "virtual"`: never point it at an in-person place. `modalidad:
   "presencial"`: never say Zoom, virtual, online, "enlace" or "link". A meeting ID,
   a link or a password is never in the script.
+- Stating the place every time is the default. If `church-info.md` says to skip the
+  usual place (a church whose events nearly all share one default place may prefer this,
+  since repeating it in every line reads as filler), state it only when `event.lugar`
+  differs from `iglesia.lugarPorDefecto` — a virtual event, or one somewhere else.
 
 ## Numbers
 

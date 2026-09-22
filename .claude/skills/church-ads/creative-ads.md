@@ -91,7 +91,9 @@ does not change). The energy comes from scale, angle, shape and motion, not from
 - **Brush band.** A rough-edged SVG band in `accent` or `primary` behind a secondary line
   (the blue strip behind "Juvenil" in ad3, the black one in ad4). Wipe it in with a
   `scaleX` from the frame. A few short angled strokes ("sparks") around the headline pop in
-  after it.
+  after it — position them from the headline's own box, not a fixed pixel offset: the
+  lead-in line above it can grow (a `church-info.md` phrasing preference, an override), and
+  a spark tuned for one title's length will drift into it (`design.md` § Legibility).
 - **Color.** Keep at least 60% of the frame on the dark field. Gold and cyan are the only
   pops. Where the examples use pink or orange, use gold or cyan.
 - **Motif.** Silhouettes of people in a circle, or raised hands, in `surface` and
@@ -150,6 +152,9 @@ build so it cannot go wrong quietly:
 - Give the motif its own region (the side or the bottom) and the text its own region. Let
   them overlap only where the text has a panel behind it.
 - Use `Headline` or `fitSize` for every title, so a long one fits.
+- Position any spark, accent or flourish relative to the text it decorates, not a fixed
+  offset: you are building against this week's title, but the same file renders again for
+  another week with a different, possibly longer one.
 - Keep the motif's opacity and size modest: a motif that is too quiet costs the ad a
   little, one that crowds the title costs the whole ad.
 - Keep all text inside the `brand.space.xl` margin and all of it in by 60% of the clip.
