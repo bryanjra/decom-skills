@@ -59,6 +59,10 @@ confirmaste.
    los colores, tomados del manual de identidad (`brand/corporate-brand.md`), en
    `video/src/brand/tokens.ts`, el único archivo donde viven. Falta la tipografía: hoy el
    diseño usa Montserrat de muestra en lugar de Myriad Pro, que es la del manual.
+5. **Las imágenes de fondo de los anuncios.** También vienen listas: una por tema (familia,
+   oración, jóvenes, evangelismo, alabanza, escuela dominical, bautismo), ya generadas y
+   revisadas. Cada semana Claude te pregunta si sigues con las mismas o quieres que genere
+   unas nuevas; generar cuesta dinero, así que lo normal es seguir con las que ya hay.
 
 > Para quien administra el equipo: hace falta Node 22 o superior y las dependencias
 > instaladas en `video/`. En Linux, el navegador de Remotion necesita librerías del
@@ -81,7 +85,9 @@ En palabras sencillas, esto es lo que pasa:
    en `out/2026-W39/events.json` (`W39` es el número de la semana del año, de lunes a
    domingo).
 3. **Te muestra los eventos, agrupados por día, y te pregunta solo lo que no está
-   claro**, en un solo mensaje. Primero, cada evento con su hora y lugar y de dónde salió
+   claro**, en un solo mensaje. Ahí mismo te pregunta si sigues con las imágenes de fondo
+   de siempre o quieres unas nuevas esta semana; si no dices nada, sigue con las que ya
+   hay. Primero, cada evento con su hora y lugar y de dónde salió
    cada dato; lo rutinario (un evento sin hora sale solo con la fecha; uno sin lugar propio
    sale en el lugar de siempre; un culto de siempre sin evento propio en el calendario) va
    ahí, sin número. Después, con número, solo las dudas de verdad: una hora que no está
@@ -250,6 +256,10 @@ tiene y **no vuelve a cobrar**; cambiar una sola palabra sí genera un cobro nue
 se vuelve a leer la semana completa. Por eso Claude te muestra el guion y espera tu visto
 bueno antes de generar la voz.
 
+Las imágenes de fondo de los anuncios también tienen un costo, pero solo si tú pides unas
+nuevas: lo normal es reutilizar las que ya están guardadas y revisadas, sin ningún cobro.
+Por eso Claude te pregunta cada semana en vez de generarlas por su cuenta.
+
 ## Problemas frecuentes
 
 | Qué ves | Qué significa |
@@ -277,6 +287,7 @@ generar completa con `node scripts/tts.mjs --week 2026-W39`.
 | `church-info.md` | Los datos de tu iglesia |
 | `overrides/` | Correcciones de una persona, por semana |
 | `brand/` | Logo y fuentes |
+| `video/public/motifs/` | Imágenes de fondo de los anuncios, una por tema, ya generadas y revisadas |
 | `video/src/brand/tokens.ts` | Colores, tipografía y tamaños: el único sitio donde cambia el diseño de marca |
 | `video/src/ads/` | Un archivo de diseño por evento |
 | `scripts/` | Los pasos que Claude ejecuta |

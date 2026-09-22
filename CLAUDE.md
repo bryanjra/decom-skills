@@ -41,9 +41,11 @@ verified feasibility findings.
    and is in Spanish.
 3. **All video is 16:9, 1920x1080, 30fps.** Templates must re-layout rather than
    hardcode, so 9:16 remains possible later.
-4. **Subagents never render.** They write components. The orchestrator writes
-   the week's narration, voices it once and renders — rendering is CPU-bound
-   and must be serialized.
+4. **Subagents never render, or generate an image.** They write components. The
+   orchestrator writes the week's narration, voices it once and renders —
+   rendering is CPU-bound and must be serialized — and, only when the person
+   asks for it, regenerates the week's cached motif images as one batch, not
+   per event (`.claude/skills/church-ads/creative-ads.md` § 6).
 5. **`video/src/brand/tokens.ts` is the single source of truth** for colors,
    spacing and type scale. No hardcoded hex values in ad components. It holds
    the IPUC's identity, in code by design (see Scope).
@@ -97,7 +99,12 @@ tracked in this repo.
   their values. The voice ID lives there, while the model and voice settings are
   in `scripts/voice.json` (version-controlled). TTS goes through
   `scripts/tts.mjs` against the REST API — not the MCP connector — so that a past
-  week re-renders identically.
+  week re-renders identically. Motif image generation is different: it is optional,
+  asked about once a run (`.claude/skills/church-ads/SKILL.md` step 4), and goes
+  through the ElevenLabs MCP connector directly — there is no script for it. That is
+  fine because a motif is a shared brand asset committed to `video/public/motifs/`,
+  not a per-week artifact `voz.mp3` is; TTS's bit-for-bit reproducibility concern
+  does not apply.
 - Git has no user identity or credentials configured here. Commit with
   `git -c user.name=Claude -c user.email=noreply@anthropic.com commit ...` (the
   repo's history is authored that way) and push with
