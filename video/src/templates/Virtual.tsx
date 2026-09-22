@@ -47,7 +47,7 @@ export const Virtual: React.FC<TemplateProps> = ({event, iglesia, headline}) => 
             <div style={{display: 'flex', flexDirection: 'column', gap: brand.space.md * u, padding: brand.space.lg * u}}>
               {event.ministerio ? <MinistryTag text={event.ministerio} /> : null}
               <Headline text={headline ?? event.titulo} size={brand.type.title * 0.9} />
-              <EventInfo event={event} delay={26} />
+              <EventInfo event={event} iglesia={iglesia} delay={26} />
             </div>
           </div>
         </Reveal>

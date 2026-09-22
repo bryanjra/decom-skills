@@ -30,7 +30,7 @@ export const Estandar: React.FC<TemplateProps> = ({event, iglesia, headline}) =>
           <Reveal delay={8}>
             <Headline text={headline ?? event.titulo} size={brand.type.title} />
           </Reveal>
-          <EventInfo event={event} delay={22} />
+          <EventInfo event={event} iglesia={iglesia} delay={22} />
         </div>
         <Reveal delay={40}>
           <Cta text={iglesia.llamadoAccion} />

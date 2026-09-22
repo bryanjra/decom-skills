@@ -70,6 +70,35 @@ export const Backdrop: React.FC<{zoom?: boolean}> = ({zoom = false}) => {
 };
 
 /**
+ * Cached-image counterpart to a hand-drawn SVG/CSS motif (creative-ads.md § 6): a
+ * pre-generated, reviewed background image instead of code-drawn shapes. Full-bleed, a
+ * multiply-blend tint locks its tone to the brand palette rather than trusting the
+ * generator's own color, and a CSS mask fades it to transparent on `fadeFrom`'s side so a
+ * flat field shows through there (for a corner logo or headline that must sit on a flat area).
+ */
+export const MotifImage: React.FC<{src: string; fadeFrom?: 'top' | 'left' | 'right' | 'radial' | 'none'}> = ({src, fadeFrom = 'top'}) => {
+  const {u, durationInFrames} = useLayout();
+  const frame = useCurrentFrame();
+  const enter = interpolate(frame, [0, 16], [0, 1], {extrapolateRight: 'clamp'});
+  const drift = interpolate(frame, [0, durationInFrames], [0, -10], {extrapolateRight: 'clamp'});
+  const fades: Record<'top' | 'left' | 'right' | 'radial', string> = {
+    top: 'linear-gradient(to bottom, transparent 0%, transparent 28%, black 52%, black 100%)',
+    left: 'linear-gradient(to right, transparent 0%, transparent 20%, black 42%, black 100%)',
+    right: 'linear-gradient(to left, transparent 0%, transparent 20%, black 42%, black 100%)',
+    // For a motif boxed on one side rather than full-bleed: fades all four edges so the box
+    // itself never shows, instead of only the edge a directional fade names.
+    radial: 'radial-gradient(closest-side, black 62%, black 78%, transparent 100%)',
+  };
+  const mask = fadeFrom === 'none' ? {} : {WebkitMaskImage: fades[fadeFrom], maskImage: fades[fadeFrom]};
+  return (
+    <div style={{position: 'absolute', inset: 0, opacity: enter, transform: `translateY(${drift * u}px)`, ...mask}}>
+      <Img src={src} style={{width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center bottom'}} />
+      <div style={{position: 'absolute', inset: 0, backgroundColor: alpha(brand.color.background, 0.18), mixBlendMode: 'multiply'}} />
+    </div>
+  );
+};
+
+/**
  * The church's mark, alone, and the only way its name reaches the screen: an ad never types the
  * name or renders `iglesia.nombre` itself. The logo image carries the name. A brand with no logo
  * (`brand.logo` is null) gets the name from church-info.md, via IglesiaProvider, as a wordmark
@@ -168,10 +197,29 @@ const InfoLine: React.FC<{text: string; delay: number; center: boolean}> = ({tex
   );
 };
 
-/** Date, time and place, straight from the event record. A missing time or place drops its row. */
-export const EventInfo: React.FC<{event: EventRecord; delay?: number; center?: boolean}> = ({event, delay = 20, center = false}) => {
+/**
+ * `event.lugar`, but only when it says something the default doesn't already: a place
+ * equal to `iglesia.lugarPorDefecto` would just repeat what every ad already implies
+ * (design.md § Facts; the same rule `script.md` § Place applies to the narration). Use
+ * this instead of `event.lugar` directly wherever an ad shows the place, including a
+ * custom pill or icon chip.
+ */
+export const lugarVisible = (event: EventRecord, iglesia: Iglesia): string | null => {
+  if (!event.lugar) return null;
+  const norm = (s: string) => s.trim().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  if (iglesia.lugarPorDefecto && norm(event.lugar) === norm(iglesia.lugarPorDefecto)) return null;
+  return event.lugar;
+};
+
+/** Date, time and place, straight from the event record. A missing time or default place drops its row. */
+export const EventInfo: React.FC<{event: EventRecord; iglesia: Iglesia; delay?: number; center?: boolean}> = ({
+  event,
+  iglesia,
+  delay = 20,
+  center = false,
+}) => {
   const {u} = useLayout();
-  const lines = [capitalizeFirst(event.fechaTexto), event.horaTexto, event.lugar].filter((l): l is string => Boolean(l));
+  const lines = [capitalizeFirst(event.fechaTexto), event.horaTexto, lugarVisible(event, iglesia)].filter((l): l is string => Boolean(l));
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: brand.space.sm * u, alignItems: center ? 'center' : 'flex-start'}}>
       {lines.map((text, i) => (

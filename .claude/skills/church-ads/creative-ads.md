@@ -17,7 +17,7 @@ number is the bolder one).
 | Level (`nivel`) | Pick it when | Look |
 |---|---|---|
 | **3 `juvenil`** | `ministerio` names a youth group (Jóvenes, Adolescentes) or the title says *juvenil* / *jóvenes* / *adolescentes* | Joyful and attractive for young people: big, energetic, warm |
-| **2 `tematico`** | Not youth, and either `plantilla` is `destacado` (a person marked it special) or the title names a themed edition or a subject of its own (a family service, a campaign, a retreat), not a regular service under its usual name | The subject shown as a drawn motif |
+| **2 `tematico`** | Not youth, and either `plantilla` is `destacado` (a person marked it special) or the title names a themed edition or a subject of its own (a family service, a campaign, a retreat), not a regular service under its usual name | The subject shown with a motif image |
 | **1 `institucional`** | Everything else, above all a regular service under its usual name (a prayer service, Sunday school) | The corporate brand manual, as written |
 
 An `origen` of `recurrente` means there is no calendar card at all: the church's own
@@ -31,7 +31,7 @@ as any other event (ad2 is a family service in the Sunday-school slot, and it is
 
 Audience beats recurrence: a weekly youth prayer hour is still `juvenil` (reference ad3).
 If the title's meaning is unclear (a nickname, an acronym) do not guess it: judge by
-`ministerio`, and draw that ministry's motif, never an invented one.
+`ministerio`, and use that ministry's cached motif image (§ 6), never an invented one.
 
 `plantilla` is the structure and the level is the finish. A `virtual` event still reads
 as online and a `destacado` one keeps its hero scale, whatever the level.
@@ -40,7 +40,7 @@ as online and a `destacado` one keeps its hero scale, whatever the level.
 
 | | 1 `institucional` | 2 `tematico` | 3 `juvenil` |
 |---|---|---|---|
-| Idea | Sober, trustworthy: the manual | One idea: the event's subject, drawn | Energy: the audience is young |
+| Idea | Sober, trustworthy: the manual | One idea: the event's subject, as a motif image | Energy: the audience is young |
 | Build | The `design.md` wrapper: `<Layout>` chosen by `plantilla` | Custom composition from `parts.tsx` plus one large motif | Custom composition from `parts.tsx` plus motif, brush bands, icon chips |
 | Type | `Headline` as is | Two sizes: a small lead-in, the subject word at `hero` scale | Uppercase, weight 800, tight tracking, one giant word, a slight skew |
 | Color | Field, white type, cyan secondary, gold as one small mark | Radial gradient from `background` to `primary`, tints of `primary`, gold highlight | Dark field, gold and cyan as the two pops, white type. **No new hues** |
@@ -62,9 +62,9 @@ this event is then its script and voice. Choosing this level is not an obligatio
 
 ## 4. Level 2: `tematico`
 
-The event has a subject, so show it. Draw one large motif (§ 6) related to a word in the
-`titulo` or `ministerio`: family for a family talk, hands for a prayer, raised hands and a
-sunrise for a campaign.
+The event has a subject, so show it. Place one large motif image (§ 6) for a word in the
+`titulo` or `ministerio`: `familia.png` for a family talk, `oracion.png` for a prayer,
+`evangelismo.png` for a campaign.
 
 - Field: a radial gradient from `brand.color.background` to `brand.color.primary` (the
   manual's own *degradé radial*), built from tokens in a template string. White type
@@ -74,9 +74,11 @@ sunrise for a campaign.
   the motif unless it has a solid or shaded panel under it (`design.md` § Legibility).
 - Title: split it into words from the title itself, a small lead-in and the subject word
   large (ad2 sets "Culto de" small over a huge "Familias"). Only the words the record has.
-- Info: date and time may share one pill (ad2). A null time or place drops its part.
-- Motion: the motif springs in over the first second, then drifts slowly for the rest of
-  the scene. Light rays behind it can turn slowly, driven by the frame.
+- Info: date and time may share one pill (ad2). A null time or place drops its part,
+  and so does a place equal to `iglesia.lugarPorDefecto` (`design.md` § Facts) — use
+  `lugarVisible(event, iglesia)`, never `event.lugar`.
+- Motion: `MotifImage` (§ 6) already fades the image in over the first frames and drifts it
+  slowly for the rest of the scene; there is nothing to add.
 
 ## 5. Level 3: `juvenil`
 
@@ -96,53 +98,90 @@ does not change). The energy comes from scale, angle, shape and motion, not from
   a spark tuned for one title's length will drift into it (`design.md` § Legibility).
 - **Color.** Keep at least 60% of the frame on the dark field. Gold and cyan are the only
   pops. Where the examples use pink or orange, use gold or cyan.
-- **Motif.** Silhouettes of people in a circle, or raised hands, in `surface` and
-  `primary` tints, lit by a low-alpha radial glow in `accent` (ad3's glow, ad4's sunrise).
-  The warmth comes from the glow, not from a new hue.
+- **Motif.** The cached `jovenes.png` or `evangelismo.png` image (§ 6), placed full-bleed
+  behind everything with `MotifImage` — its own silhouettes and warm gold glow already read
+  as ad3's glow or ad4's sunrise. Nothing to draw.
 - **Info chips.** Date and time as outlined pills (ad1), or an icon row (ad3, ad4) with a
   drawn calendar, clock and pin, each heading its own chip. An icon exists only for a field
-  the record has: no time, no clock chip.
+  the record has: no time, no clock chip. The pin chip uses `lugarVisible(event, iglesia)`
+  (`design.md` § Facts): no chip when the place is the default one.
 - **Motion.** Headline words spring in one by one with slight overshoot, the band wipes,
   the sparks pop, the motif floats a few pixels. Everything must be in by 60% of the clip.
 - **Tone.** Joyful is not flippant: no jokes, no slang, no emoji. The manual asks for a
   serious and trustworthy voice, and prayer and worship are sincere.
 
-## 6. The motif: drawn in code
+## 6. The motif: a cached image
 
-The pipeline has no photos and a designer adds none: draw the motif as inline SVG or
-CSS shapes inside your own `<slug>.tsx`, as a small component. Flat silhouettes read well
-and are safe: a circle for a head, a rounded body, one tint per figure.
+The pipeline has no photos, and a designer does not draw the motif or generate one either:
+the orchestrator keeps one pre-generated, reviewed background image per category, checked in
+under `video/public/motifs/<categoria>.png`:
 
-| The title or ministry says | A motif to draw |
+- `familia.png`
+- `oracion.png`
+- `jovenes.png`
+- `evangelismo.png`
+- `alabanza.png`
+- `escuela-dominical.png`
+- `bautismo.png`
+
+Each image was generated and hand-reviewed once, off the per-event critical path, the same
+way TTS is centralized in the orchestrator rather than run per event (`CLAUDE.md` hard rule
+4): it is already a flat-vector-illustration-style, deep-navy background with an anonymous
+silhouette motif in cyan/pale-blue tones and a warm gold glow, no text, no logo, and generous
+negative space in the upper two-thirds for the title to sit over. An `ad-designer` subagent
+must not try to generate or edit these images — there is no image-generation tool available
+to it anyway. Your job is to pick the right cached filename for your event and place it with
+`MotifImage`.
+
+| The title or ministry says | Use this cached image |
 |---|---|
-| familia, familias | Three or four figures of different heights, close together |
-| oración, orar | Two hands pressed together, or seated figures in a circle around a glow |
-| jóvenes, juvenil | Figures in a circle with arms over shoulders, or a crowd of raised hands |
-| evangelismo, campaña | Raised hands against a sunrise, rays fanning from the horizon |
-| alabanza, adoración | Raised hands, sound waves or a musical note |
-| escuela dominical, enseñanza | An open book. The manual's own graphic is the open-book wave (p.56) |
-| bautismo | Layered water waves (the manual reads blue as water and new birth) |
+| familia, familias | `motifs/familia.png` |
+| oración, orar | `motifs/oracion.png` |
+| jóvenes, juvenil | `motifs/jovenes.png` |
+| evangelismo, campaña | `motifs/evangelismo.png` |
+| alabanza, adoración | `motifs/alabanza.png` |
+| escuela dominical, enseñanza | `motifs/escuela-dominical.png` |
+| bautismo | `motifs/bautismo.png` |
 | anything else | The radial gradient with slow light rays. Do not invent a subject |
 
-The table is a starting point. What is fixed:
+**`MotifImage`** (`video/src/templates/parts.tsx`) is how you place a cached image. It takes
+`src` (`staticFile('motifs/<categoria>.png')`) and `fadeFrom` (`'top' | 'left' | 'right' |
+'radial' | 'none'`, default `'top'`): it renders the image full-bleed, locks its tone to the
+brand palette with a multiply tint, and masks it so a flat field shows through on the named
+side (or, for `'radial'`, on all four sides at once). It already handles the entrance and the
+slow drift; there is nothing left to animate. Two placement patterns are worked out in code:
 
-- **A motif makes no claim.** Figures are anonymous. Draw no place, crowd count, person or
-  object that the record does not name.
-- **No text in a motif.** No SVG `<text>`, no verse, no slogan.
-- **Never echo the logo.** No lone globe, ring or lettered arc: the manual forbids using
-  its parts separately (pp.17 to 19). If you draw a book, use the wave graphic of p.56,
-  never the logo's four gold lines.
+- **Level 3, full-bleed.** The image fills the whole frame behind everything, `fadeFrom="top"`
+  so the corner logo and headline sit on the flat field near the top. See
+  `video/src/ads/servicio-sabado-1845.tsx`.
+- **Level 2, contained to one side.** The image fills a box next to the text block (`design.md`
+  § 4's "motif on one side, text block on the other"): wrap it in a `position: relative,
+  overflow: hidden` container sized to the box, since `MotifImage` is `position: absolute,
+  inset: 0` and fills its nearest positioned ancestor. Use `fadeFrom="radial"`: a directional
+  fade only softens the one edge it names, and the box's other three edges still show as a
+  hard rectangle against the surrounding gradient (this was tried and rejected — it read as a
+  pasted-in photo). The radial fade dissolves the whole box into a soft medallion instead, so
+  none of its edges show. See `video/src/ads/ayuno-evangelismo.tsx`.
+
+What is fixed:
+
+- **A motif makes no claim.** These images are already anonymous silhouettes: nothing that
+  names a place, crowd count, person or object the record doesn't give. Positioning or
+  choosing among them cannot violate this on its own — just don't caption or crop one into
+  claiming something it doesn't show.
+- **No text over the image.** The cached images already have none baked in; a designer adds
+  none either — text belongs to the Remotion layer on top, never composited into the image.
+- **Never echo the logo.** No lone globe, ring or lettered arc: the manual forbids using its
+  parts separately (pp.17 to 19). This is why `escuela-dominical.png` is a plain book shape,
+  not the corporate globe/ring emblem — that was the closest risk when the image was
+  reviewed, so double-check it if you ever swap that image.
 - **Keep the logo's field flat.** The logo (`Logo`, or `CornerLogo` in left-aligned layouts;
   `design.md` § Brand) sits on a flat area of `brand.color.background`: no gradient, glow,
-  band or motif behind it or over it. Levels 2 and 3 reserve its corner or footer strip and
-  keep the gradient, the glow and the motif out of it.
-- **Colors come from `brand.color.*`** on every `fill` and `stroke`. No `#hex`, no
-  `rgb()`, no named colors such as `white`. Gradients and glows are built from tokens
-  with `alpha()`.
-- **Drive it with the frame.** `spring()` and `interpolate()` on `useCurrentFrame()`, with
-  `useLayout().durationInFrames` for the slow drift. No SVG `<animate>`, no CSS animation.
-- **Scale with `u` and lay out with flex or `inset`.** In `portrait` the motif moves above
-  or below the text instead of beside it.
+  band or motif behind it or over it. `MotifImage`'s fade already does this for the current
+  layouts, but a designer who repositions `MotifImage` or the logo must re-check it — the
+  mask's percentages are tuned for where the logo sits today, not derived from it.
+- **The tint overlay locks it to the brand palette**, not the raw generated color: never
+  drop or weaken it to "improve" an image's look.
 
 ## 7. You cannot see your work
 

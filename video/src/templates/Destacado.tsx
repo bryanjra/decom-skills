@@ -43,7 +43,7 @@ export const Destacado: React.FC<TemplateProps> = ({event, iglesia, headline}) =
             backgroundColor: brand.color.accent,
           }}
         />
-        <EventInfo event={event} delay={26} center />
+        <EventInfo event={event} iglesia={iglesia} delay={26} center />
         <div style={{marginTop: brand.space.sm * u}}>
           <Reveal delay={46}>
             <Cta text={iglesia.llamadoAccion} align="center" />

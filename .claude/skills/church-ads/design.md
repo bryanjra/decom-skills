@@ -58,11 +58,16 @@ Every fact on screen comes from `event` or `iglesia`, and nothing else exists.
   `iglesia.llamadoAccion`. The church name reaches the screen only through `Logo`:
   never type it, and never read `iglesia.nombre` (by property or by destructuring) or call
   `useIglesia()` in an ad. `validate.mjs` rejects all of these.
+- Place, on screen, only when it says something the default doesn't already: a place
+  equal to `iglesia.lugarPorDefecto` is dropped, the same way `script.md` § Place
+  skips it in the narration — repeating "Templo" on every ad is filler. Get it through
+  `lugarVisible(event, iglesia)` (`templates/parts.tsx`), never `event.lugar` directly,
+  whether in `EventInfo` or in a custom pill/chip.
 - Never type a date, weekday, month, clock time or place into the file, even
   "just for the layout". Use the sample data in `video/src/sample.ts` to preview.
 - No time (`hora` is `null`): the time row is simply absent. Do not write "hora por
-  confirmar", "próximamente" or a placeholder. Same for a `null` place or call
-  to action: `EventInfo` and `Cta` already render nothing.
+  confirmar", "próximamente" or a placeholder. Same for a `null` or default place, or a
+  `null` call to action: `EventInfo` and `Cta` already render nothing.
 - On-screen text is Spanish (Colombia), addressing the reader as `tú`.
 
 ## Brand
